@@ -1,0 +1,10 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/opt/ros/dashing/lib/python3.6/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/opt/ros/dashing/lib/python3.6/site-packages"
+    ]
+}
