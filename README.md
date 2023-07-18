@@ -67,7 +67,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
         pcap_path: "<Your PCAP file path>"                   #The path of pcap file (set during offline playback)
         correction_file_path: "<Your correction file path>"  #LiDAR angle file, required for offline playback of pcap/packet rosbag
         firetimes_path: "<Your firetime file path>"            #The path of firetimes file
-        source_type: 2                                       #The type of data source, 1: real-time radar connection, 2: pcap, 3: packet rosbag
+        source_type: 2                                       #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag
         pcap_play_synchronization: true                      #Pcap play rate synchronize with the host time
         x: 0                                                 #Calibration parameter
         y: 0                                                 #Calibration parameter
@@ -109,7 +109,7 @@ Set the `source_type` in the configuration file to `2` and input the correct lid
 
 ### Realize multi lidar fusion
 
-According to the configuration of a single radar, multiple drivers can be created in `config.yaml`, as shown in the following example
+According to the configuration of a single lidar, multiple drivers can be created in `config.yaml`, as shown in the following example
 
     lidar:
     - driver:              

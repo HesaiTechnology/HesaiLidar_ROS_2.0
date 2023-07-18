@@ -7,7 +7,7 @@ lidar:
       pcap_path: "Your pcap file path" #The path of pcap file
       correction_file_path: "Your correction file path" #The path of correction file
       firetimes_path: "Your firetime file path" #The path of firetimes file
-      source_type: 1                   #The type of data source, 1: real-time radar connection, 2: pcap, 3: packet rosbag    
+      source_type: 1                   #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag    
       #transform param
       x: 0
       y: 0
