@@ -105,6 +105,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   YamlRead<float>(driver_config, "pitch", driver_param.decoder_param.transform_param.pitch, 0);
   YamlRead<float>(driver_config, "yaw", driver_param.decoder_param.transform_param.yaw, 0);
   YamlRead<std::string>(driver_config, "device_ip_address", driver_param.input_param.device_ip_address, "192.168.1.201");
+  YamlRead<float>(driver_config, "frame_azimuth", driver_param.decoder_param.frame_azimuth, -1);
 
   int source_type = 0;
   YamlRead<int>(driver_config, "source_type", source_type, 0);
