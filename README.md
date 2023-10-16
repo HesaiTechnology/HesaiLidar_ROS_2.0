@@ -1,22 +1,13 @@
-# Introduction to HesaiLidar_Ros_2.0
+# Introduction to HesaiLidar_ROS_2.0
 This repository includes the ROS Driver for Hesai LiDAR sensor manufactured by Hesai Technology. 
 Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/HesaiLidar_SDK_2.0), After launched, the project will monitor UDP packets from Lidar,parse data and publish point cloud frames into ROS topic
 
 ## Support Lidar type
-- Pandar128E3X
-- Pandar90E3X
-- Pandar64E3X
-- Pandar40E3X
-- Pandr64
-- Pandar40P
-- AT128E2X
-- AT128E3X
-- PandarQT
-- QT128C2X
-- FT120C1X
-- PandarXT-16
-- PandarXT-32
-- XT32M2X
+- Pandar
+- AT128
+- QT
+- FT120
+- XT16/XT32
 
 ### Installation dependencies
 
@@ -39,6 +30,11 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
     sudo apt-get update
     sudo apt-get install -y libyaml-cpp-dev
 
+### Clone
+```
+$ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+```    
+
 ### Compile and run
 
 - ros1
@@ -55,18 +51,25 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
         
         colcon build --symlink-install
         . install/local_setup.bash
+
+    For ROS2-Dashing     
+
+        ros2 launch hesai_ros_driver dashing_start.py
+        
+    For other ROS2 version
+
         ros2 launch hesai_ros_driver start.py
 
 ### Introduction to the configuration file `config.yaml` parameters
     
     lidar:
     - driver:
-        udp_port: 2368                                       #Udp port of lidar
-        ptc_port: 9347                                       #Ptc port of lidar
-        device_ip_address: 192.168.1.201                             #ip address of lidar
+        udp_port: 2368                                       #UDP port of lidar
+        ptc_port: 9347                                       #PTC port of lidar
+        device_ip_address: 192.168.1.201                     #IP address of lidar
         pcap_path: "<Your PCAP file path>"                   #The path of pcap file (set during offline playback)
         correction_file_path: "<Your correction file path>"  #LiDAR angle file, required for offline playback of pcap/packet rosbag
-        firetimes_path: "<Your firetime file path>"            #The path of firetimes file
+        firetimes_path: "<Your firetime file path>"          #The path of firetimes file
         source_type: 2                                       #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag
         pcap_play_synchronization: true                      #Pcap play rate synchronize with the host time
         x: 0                                                 #Calibration parameter
