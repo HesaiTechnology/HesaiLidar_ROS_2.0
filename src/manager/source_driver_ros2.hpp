@@ -151,7 +151,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
   if(send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
-    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1)) ;
+    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, this, std::placeholders::_2)) ;
   }
   if (!driver_ptr_->Init(driver_param))
   {
@@ -249,7 +249,7 @@ inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& 
     rs_msg.packets.push_back(rawpacket);
   }
   rs_msg.header.stamp.sec = (uint32_t)floor(timestamp);
-  rs_msg.header.stamp.nanosec = (uint32_t)round((timestamp - ros_msg.header.stamp.sec) * 1e9);
+  rs_msg.header.stamp.nanosec = (uint32_t)round((timestamp - rs_msg.header.stamp.sec) * 1e9);
   rs_msg.header.frame_id = frame_id_;
   return rs_msg;
 }
