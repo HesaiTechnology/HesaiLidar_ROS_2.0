@@ -64,11 +64,11 @@ protected:
   // Used to publish point clouds through 'ros_send_point_cloud_topic'
   void SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg);
   // Used to publish the original pcake through 'ros_send_packet_topic'
-  void SendPacket(const UdpFrame_t&  ros_msg);
+  void SendPacket(const UdpFrame_t&  ros_msg, double timestamp);
   // Convert point clouds into ROS messages
   sensor_msgs::msg::PointCloud2 ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id);
   // Convert packets into ROS messages
-  hesai_ros_driver::msg::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg);
+  hesai_ros_driver::msg::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg, double timestamp);
   #ifdef __CUDACC__
     std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
   #else
@@ -174,9 +174,9 @@ inline void SourceDriver::Stop()
   driver_ptr_->Stop();
 }
 
-inline void SourceDriver::SendPacket(const UdpFrame_t& msg)
+inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 {
-  pkt_pub_->publish(ToRosMsg(msg));
+  pkt_pub_->publish(ToRosMsg(msg, timestamp));
 }
 
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
@@ -239,7 +239,7 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   return ros_msg;
 }
 
-inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg) {
+inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg, double timestamp) {
   hesai_ros_driver::msg::UdpFrame rs_msg;
   for (int i = 0 ; i < ros_msg.size(); i++) {
     hesai_ros_driver::msg::UdpPacket rawpacket;
@@ -248,6 +248,9 @@ inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& 
     memcpy(&rawpacket.data[0], &ros_msg[i].buffer[0], ros_msg[i].packet_len);
     rs_msg.packets.push_back(rawpacket);
   }
+  rs_msg.header.stamp.sec = (uint32_t)floor(timestamp);
+  rs_msg.header.stamp.nanosec = (uint32_t)round((timestamp - ros_msg.header.stamp.sec) * 1e9);
+  rs_msg.header.frame_id = frame_id_;
   return rs_msg;
 }
 

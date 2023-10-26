@@ -61,11 +61,11 @@ protected:
   // Used to publish point clouds through 'ros_send_point_cloud_topic'
   void SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg);
   // Used to publish the original pcake through 'ros_send_packet_topic'
-  void SendPacket(const UdpFrame_t&  ros_msg);
+  void SendPacket(const UdpFrame_t&  ros_msg, double);
   // Convert point clouds into ROS messages
   sensor_msgs::PointCloud2 ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id);
   // Convert packets into ROS messages
-  hesai_ros_driver::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg);
+  hesai_ros_driver::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg, double timestamp);
 
   #ifdef __CUDACC__
     std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
@@ -152,7 +152,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
   if(send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
-    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1)) ;
+    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
   } 
   if (!driver_ptr_->Init(driver_param))
   {
@@ -176,9 +176,9 @@ inline void SourceDriver::Stop()
   driver_ptr_->Stop();
 }
 
-inline void SourceDriver::SendPacket(const UdpFrame_t& msg)
+inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 {
-  pkt_pub_.publish(ToRosMsg(msg));
+  pkt_pub_.publish(ToRosMsg(msg, timestamp));
 }
 
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
@@ -238,7 +238,7 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   return ros_msg;
 }
 
-inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg) {
+inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg, double timestamp) {
   hesai_ros_driver::UdpFrame rs_msg;
   for (int i = 0 ; i < ros_msg.size(); i++) {
     hesai_ros_driver::UdpPacket rawpacket;
@@ -247,6 +247,8 @@ inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_m
     memcpy(&rawpacket.data[0], &ros_msg[i].buffer[0], ros_msg[i].packet_len);
     rs_msg.packets.push_back(rawpacket);
   }
+  rs_msg.header.stamp = ros::Time().fromSec(timestamp);
+  rs_msg.header.frame_id = frame_id_;
   return rs_msg;
 }
 
