@@ -111,7 +111,7 @@ if($ENV{ROS_VERSION} MATCHES "2")
     rosidl_generate_interfaces(${PROJECT_NAME}
       "msg/msg_ros2/UdpPacket.msg"
       "msg/msg_ros2/UdpFrame.msg"
-      DEPENDENCIES builtin_interfaces 
+      DEPENDENCIES builtin_interfaces std_msgs
     )
     ament_export_dependencies(rosidl_default_runtime)                 
     

@@ -151,7 +151,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
   if(send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
-    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, this, std::placeholders::_2)) ;
+    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
   }
   if (!driver_ptr_->Init(driver_param))
   {
