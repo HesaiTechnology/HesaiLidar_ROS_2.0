@@ -94,15 +94,9 @@ int main(int argc, char** argv)
   std::shared_ptr<NodeManager> demo_ptr = std::make_shared<NodeManager>();
   demo_ptr->Init(config);
   demo_ptr->Start();
-
-
-#ifdef ROS_FOUND
-  ros::MultiThreadedSpinner spinner(2); 
-  spinner.spin();
-#elif ROS2_FOUND
-  std::unique_lock<std::mutex> lck(g_mtx);
-  g_cv.wait(lck);
-#endif
-
+  while (!demo_ptr->IsPlayEnded())
+  {
+    std::this_thread::sleep_for(std::chrono::microseconds(1000));
+  }
   return 0;
 }
