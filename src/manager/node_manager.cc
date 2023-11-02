@@ -75,7 +75,7 @@ std::vector<SourceDriver::Ptr> NodeManager::GetSourcesDriver()
 
 bool NodeManager::IsPlayEnded() {
   int num = GetSourcesDriver().size();
-  bool all_pcap_end = true; // ture 封装到manger
+  bool all_pcap_end = true;
 #ifdef ROS_FOUND
     for (int i = 0; i < num; i++) {
       all_pcap_end = GetSourcesDriver()[i]->GetDriverPtr()->lidar_ptr_->IsPlayEnded();
@@ -85,7 +85,7 @@ bool NodeManager::IsPlayEnded() {
     }
     if (all_pcap_end) {
       std::this_thread::sleep_for(std::chrono::seconds(3));
-      printf("-----------------%d pcap(s) end, we will close the nodes!!!-----------------\n", num);
+      printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
       system("rosnode kill rviz");
     } 
 #elif ROS2_FOUND
@@ -97,8 +97,11 @@ bool NodeManager::IsPlayEnded() {
     }
     if (all_pcap_end) {
       std::this_thread::sleep_for(std::chrono::seconds(3));
-      printf("-----------------%d pcap(s) end, we will close the nodes!!!-----------------\n", num);
+      printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
+      std::cout.flush();
       system("pkill -f rviz2");
+      std::this_thread::sleep_for(std::chrono::microseconds(1));
+      std::cout.flush();
     }
 #endif
 return all_pcap_end;
