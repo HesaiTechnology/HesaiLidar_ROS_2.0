@@ -58,6 +58,7 @@ public:
   SourceDriver(SourceType src_type) {};
   void SpinRos2(){rclcpp::spin(this->node_ptr_);}
   std::shared_ptr<rclcpp::Node> node_ptr_;
+  std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> GetDriverPtr();
 protected:
   // Save packets subscribed by 'ros_recv_packet_topic'
   void RecievePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg);
@@ -81,8 +82,10 @@ protected:
   //spin thread while recieve data from ROS topic
   boost::thread* subscription_spin_thread_;
 };
-
-
+inline std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> SourceDriver:: GetDriverPtr()
+{
+  return driver_ptr_;
+}
 inline void SourceDriver::Init(const YAML::Node& config)
 {
   YAML::Node driver_config = YamlSubNodeAbort(config, "driver");

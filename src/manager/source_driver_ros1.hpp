@@ -55,6 +55,7 @@ public:
     ros::MultiThreadedSpinner spinner(2); 
     spinner.spin();
   }
+  std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> GetDriverPtr();
 protected:
   // Save packets subscribed by 'ros_recv_packet_topic'
   void RecievePacket(const hesai_ros_driver::UdpFrame& msg);
@@ -84,6 +85,10 @@ protected:
   boost::thread* subscription_spin_thread_;
 };
 
+inline std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> SourceDriver:: GetDriverPtr()
+{
+  return driver_ptr_;
+}
 
 inline void SourceDriver::Init(const YAML::Node& config)
 {

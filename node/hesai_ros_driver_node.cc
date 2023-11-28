@@ -89,20 +89,16 @@ int main(int argc, char** argv)
 
   YAML::Node config;
   config = YAML::LoadFile(config_path);
-
-
   std::shared_ptr<NodeManager> demo_ptr = std::make_shared<NodeManager>();
   demo_ptr->Init(config);
   demo_ptr->Start();
-
-
-#ifdef ROS_FOUND
-  ros::MultiThreadedSpinner spinner(2); 
-  spinner.spin();
-#elif ROS2_FOUND
-  std::unique_lock<std::mutex> lck(g_mtx);
-  g_cv.wait(lck);
-#endif
-
+  // you can chose [!demo_ptr->IsPlayEnded()] or [1] 
+  // If you chose !demo_ptr->IsPlayEnded(), ROS node will end with the end of the PCAP.
+  // If you select 1, the ROS node does not end with the end of the PCAP.
+  while (!demo_ptr->IsPlayEnded())
+  {
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
+  }
+  demo_ptr->Stop();
   return 0;
 }
