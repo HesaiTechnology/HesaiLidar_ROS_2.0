@@ -39,6 +39,7 @@
 #include <chrono>
 #include <string>
 #include <functional>
+#include <boost/thread.hpp>
 #ifdef __CUDACC__
   #include "hesai_lidar_sdk_gpu.cuh"
 #else
