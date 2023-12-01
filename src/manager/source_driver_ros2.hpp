@@ -99,7 +99,8 @@ inline void SourceDriver::Init(const YAML::Node& config)
   YamlRead<std::string>(driver_config, "pcap_path", driver_param.input_param.pcap_path, "");
   YamlRead<std::string>(driver_config, "firetimes_path",driver_param.input_param.firetimes_path, "");
   YamlRead<std::string>(driver_config, "correction_file_path", driver_param.input_param.correction_file_path, "");
-  
+  YamlRead<int>(driver_config, "standby_mode", driver_param.input_param.standby_mode, -1);
+  YamlRead<int>(driver_config, "speed", driver_param.input_param.speed, -1);
   // decoder related
   YamlRead<bool>(driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, true);
   YamlRead<float>(driver_config, "x", driver_param.decoder_param.transform_param.x, 0);
@@ -235,8 +236,9 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_ring_;
     ++iter_timestamp_;   
   }
+  printf("HesaiLidar Runing Status [standby mode:%u]  |  [speed:%u]\n", frame.work_mode, frame.spin_speed);
   printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
-
+  std::cout.flush();
   ros_msg.header.stamp.sec = (uint32_t)floor(frame.points[0].timestamp);
   ros_msg.header.stamp.nanosec = (uint32_t)round((frame.points[0].timestamp - ros_msg.header.stamp.sec) * 1e9);
   ros_msg.header.frame_id = frame_id_;
