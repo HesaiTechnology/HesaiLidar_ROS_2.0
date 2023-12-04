@@ -33,7 +33,7 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include "hesai_ros_driver/UdpFrame.h"
 #include "hesai_ros_driver/UdpPacket.h"
-
+#include <boost/thread.hpp>
 #ifdef __CUDACC__
   #include "hesai_lidar_sdk_gpu.cuh"
 #else

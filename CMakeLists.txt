@@ -142,8 +142,9 @@ add_subdirectory(src/driver/HesaiLidar_SDK_2.0)
 #                node/hesai_ros_driver_node.cpp
 #                src/manager/node_manager.cpp
 #                )
-
-
+find_package(Boost REQUIRED COMPONENTS thread)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 find_package(CUDA)
 if(CUDA_FOUND)
   

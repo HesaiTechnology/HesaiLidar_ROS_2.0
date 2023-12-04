@@ -4,12 +4,13 @@ lidar:
       udp_port: 2368                   #UDP port of lidar
       ptc_port: 9347                   #PTC port of lidar
       device_ip_address: 192.168.1.201 #host_ip_address
-      pcap_path: "Your pcap file path" #The path of pcap file
+      pcap_path: "Your pcap file"      #The path of pcap file
       correction_file_path: "Your correction file path" #The path of correction file
-      firetimes_path: "Your firetime file path" #The path of firetimes file
+      firetimes_path: "Your firetime file path"         #The path of firetimes file
       source_type: 1                   #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag    
-      frame_start_azimuth: 200               #Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you 
-                                       #do not want to use it.
+      frame_start_azimuth: 200         #Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it
+      standby_mode: -1                 #The standby mode: [-1] is invalit [0] in operation [1] standby
+      speed: -1                        #The speed: [-1] invalit, you must make sure your set has been supported by the lidar you are using
       #transform param
       x: 0
       y: 0
@@ -18,9 +19,9 @@ lidar:
       pitch: 0
       yaw: 0
     ros:
-      ros_frame_id: hesai_lidar                      #Frame id of packet message and point cloud message
+      ros_frame_id: hesai_lidar                     #Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
       ros_send_packet_topic: /lidar_packets         #Topic used to send lidar raw packets through ROS
       ros_send_point_cloud_topic: /lidar_points     #Topic used to send point cloud through ROS
-      send_packet_ros: true                          #true: Send packets through ROS 
-      send_point_cloud_ros: true                     #true: Send point cloud through ROS    
+      send_packet_ros: true                         #true: Send packets through ROS 
+      send_point_cloud_ros: true                    #true: Send point cloud through ROS    
