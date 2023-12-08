@@ -1,4 +1,7 @@
 # Introduction to HesaiLidar_ROS_2.0
+
+MODIFIED FOR FT DELIVERY 
+
 This repository includes the ROS Driver for Hesai LiDAR sensor manufactured by Hesai Technology. 
 Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/HesaiLidar_SDK_2.0), After launched, the project will monitor UDP packets from Lidar,parse data and publish point cloud frames into ROS topic
 
@@ -33,6 +36,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 ### Clone
 ```
 $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+$ git clone --recurse-submodules git@github.com:Futu-reADS/HesaiLidar_ROS_2.0.git
 ```    
 
 ### Compile and run
