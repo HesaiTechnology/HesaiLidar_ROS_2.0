@@ -256,8 +256,9 @@ if($ENV{ROS_VERSION} MATCHES "2")
   install(DIRECTORY
     launch
     rviz
+    urdf
     DESTINATION share/${PROJECT_NAME})
-    
+  
 
   ament_package()
 

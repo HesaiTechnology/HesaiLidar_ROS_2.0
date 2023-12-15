@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="XT-16">
+  <xacro:property name="M_PI" value="3.1415926535897931"/>
+  <xacro:macro name="XT-16" params="*origin parent:=base_link name:=hesai">
+
+    <!-- <joint name="${name}_base_mount_joint" type="fixed">
+      <origin rpy="${roll} ${pitch} ${yaw}" xyz="${x} ${y} ${z}"/>
+      <parent link="${parent}"/>
+      <child link="${name}_base_link"/>
+    </joint> -->
+
+    <joint name="${name}_base_mount_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent}"/>
+      <child link="${name}_base_link"/>
+    </joint>
+
+    <link name="${name}_base_link">
+      <visual>
+        <geometry>
+          <cylinder length="0.020" radius="0.040"/>
+        </geometry>
+        <origin xyz="0 0 0.010" rpy="0 0 0"/>
+        <material name="gray">
+          <color rgba="0.9 0.9 0.9 2.0"/>
+        </material>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.046" radius="0.040"/>
+        </geometry>
+        <origin xyz="0 0 0.043" rpy="0 0 0"/>
+        <material name="blue">
+          <color rgba="0.0 0.0 1.0 2.0"/>
+        </material>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.010" radius="0.040"/>
+        </geometry>
+        <origin xyz="0 0 0.071" rpy="0 0 0"/>
+        <material name="gray">
+        </material>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.030" radius="0.008"/>
+        </geometry>
+        <origin xyz="0.0 0.040 0.008" rpy="1.57 0 0"/>
+        <material name="gray">
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.0"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      </inertial>
+    </link>
+    <joint name="${name}_base_scan_joint" type="fixed">
+      <origin xyz="0 0 0.0464" rpy="0 0 0" />
+      <parent link="${name}_base_link" />
+      <child link="${name}"/>
+    </joint>
+    <link name="${name}">
+      <inertial>
+        <mass value="0.0"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+</robot>

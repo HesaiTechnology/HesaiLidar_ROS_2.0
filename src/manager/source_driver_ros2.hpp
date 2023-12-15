@@ -124,7 +124,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   if (send_point_cloud_ros) {
     std::string ros_send_point_topic;
     YamlRead<std::string>(config["ros"], "ros_send_point_cloud_topic", ros_send_point_topic, "hesai_points");
-    pub_ = node_ptr_->create_publisher<sensor_msgs::msg::PointCloud2>(ros_send_point_topic, 100);
+    pub_ = node_ptr_->create_publisher<sensor_msgs::msg::PointCloud2>(ros_send_point_topic, rclcpp::QoS(1).best_effort().keep_last(5));
   }
 
   if (send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET) {
@@ -232,9 +232,10 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_timestamp_;   
   }
   printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
-
-  ros_msg.header.stamp.sec = (uint32_t)floor(frame.points[0].timestamp);
-  ros_msg.header.stamp.nanosec = (uint32_t)round((frame.points[0].timestamp - ros_msg.header.stamp.sec) * 1e9);
+  // LJ hack - time diff between hesai and rest of system
+  // ros_msg.header.stamp.sec = (uint32_t)floor(frame.points[0].timestamp);
+  // ros_msg.header.stamp.nanosec = (uint32_t)round((frame.points[0].timestamp - ros_msg.header.stamp.sec) * 1e9);
+  ros_msg.header.stamp = rclcpp::Clock{RCL_SYSTEM_TIME}.now();
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;
 }
