@@ -7,6 +7,6 @@ def generate_launch_description():
     # rviz_config=get_package_share_directory('hesai_ros_driver')+'/rviz/rviz2.rviz'
 
     return LaunchDescription([
-        Node(namespace='/', package='hesai_ros_driver', executable='hesai_ros_driver_node', output='screen'),
+        Node(namespace='', package='hesai_ros_driver', executable='hesai_ros_driver_node', output='screen'),
         # Node(namespace='rviz2', package='rviz2', executable='rviz2', arguments=['-d',rviz_config])
     ])
