@@ -20,7 +20,7 @@ lidar:
     ros:
       ros_frame_id: sensor_kit_base_link                      #Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
-      ros_send_packet_topic: /sensing/lidar/top/points_raw         #Topic used to send lidar raw packets through ROS
-      ros_send_point_cloud_topic: /sensing/lidar/top/hesai_points 
+      ros_send_packet_topic: /sensing/lidar/top/packet_raw         #Topic used to send lidar raw packets through ROS
+      ros_send_point_cloud_topic: /sensing/lidar/top/points_raw
       send_packet_ros: false                          #true: Send packets through ROS 
       send_point_cloud_ros: true                     #true: Send point cloud through ROS
