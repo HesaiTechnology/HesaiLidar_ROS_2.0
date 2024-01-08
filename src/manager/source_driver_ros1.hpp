@@ -104,7 +104,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   YamlRead<std::string>(driver_config, "correction_file_path", driver_param.input_param.correction_file_path, "");
   
   // decoder related
-  YamlRead<bool>(driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, true);
+  YamlRead<bool>(driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, false);
   YamlRead<float>(driver_config, "x", driver_param.decoder_param.transform_param.x, 0);
   YamlRead<float>(driver_config, "y", driver_param.decoder_param.transform_param.y, 0);
   YamlRead<float>(driver_config, "z", driver_param.decoder_param.transform_param.z, 0);
