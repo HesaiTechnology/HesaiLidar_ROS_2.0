@@ -18,6 +18,8 @@ lidar:
       roll: 0
       pitch: 0
       yaw: 0
+        #decoder param
+        use_timestamp_type: 0           #0 use point cloud timestamp; 1 use receive timestamp
     ros:
       ros_frame_id: hesai_lidar                     #Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
