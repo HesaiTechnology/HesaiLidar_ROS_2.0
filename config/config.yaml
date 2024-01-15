@@ -4,6 +4,7 @@ lidar:
       udp_port: 2368                   #UDP port of lidar
       ptc_port: 9347                   #PTC port of lidar
       device_ip_address: 192.168.1.201 #host_ip_address
+      group_address: 255.255.255.255
       pcap_path: "Your pcap file"      #The path of pcap file
       correction_file_path: "Your correction file path" #The path of correction file
       firetimes_path: "Your firetime file path"         #The path of firetimes file
@@ -18,8 +19,11 @@ lidar:
       roll: 0
       pitch: 0
       yaw: 0
-        #decoder param
-        use_timestamp_type: 0           #0 use point cloud timestamp; 1 use receive timestamp
+      #decoder param
+      use_timestamp_type: 0           #0 use point cloud timestamp; 1 use receive timestamp
+      #fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
+      fov_start: -1
+      fov_end:  -1
     ros:
       ros_frame_id: hesai_lidar                     #Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
