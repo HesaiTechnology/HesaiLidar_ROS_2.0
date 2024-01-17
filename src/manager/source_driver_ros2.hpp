@@ -59,7 +59,11 @@ public:
   SourceDriver(SourceType src_type) {};
   void SpinRos2(){rclcpp::spin(this->node_ptr_);}
   std::shared_ptr<rclcpp::Node> node_ptr_;
-  std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> GetDriverPtr();
+  #ifdef __CUDACC__
+    std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
+  #else
+    std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
+  #endif
 protected:
   // Save packets subscribed by 'ros_recv_packet_topic'
   void RecievePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg);
@@ -71,11 +75,6 @@ protected:
   sensor_msgs::msg::PointCloud2 ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id);
   // Convert packets into ROS messages
   hesai_ros_driver::msg::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg, double timestamp);
-  #ifdef __CUDACC__
-    std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
-  #else
-    std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
-  #endif
   std::string frame_id_;
   rclcpp::Subscription<hesai_ros_driver::msg::UdpFrame>::SharedPtr pkt_sub_;
   rclcpp::Publisher<hesai_ros_driver::msg::UdpFrame>::SharedPtr pkt_pub_;
@@ -83,10 +82,6 @@ protected:
   //spin thread while recieve data from ROS topic
   boost::thread* subscription_spin_thread_;
 };
-inline std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> SourceDriver:: GetDriverPtr()
-{
-  return driver_ptr_;
-}
 inline void SourceDriver::Init(const YAML::Node& config)
 {
   YAML::Node driver_config = YamlSubNodeAbort(config, "driver");

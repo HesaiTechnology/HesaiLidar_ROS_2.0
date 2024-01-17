@@ -55,7 +55,11 @@ public:
     ros::MultiThreadedSpinner spinner(2); 
     spinner.spin();
   }
-  std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> GetDriverPtr();
+  #ifdef __CUDACC__
+    std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
+  #else
+    std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
+  #endif
 protected:
   // Save packets subscribed by 'ros_recv_packet_topic'
   void RecievePacket(const hesai_ros_driver::UdpFrame& msg);
@@ -67,12 +71,6 @@ protected:
   sensor_msgs::PointCloud2 ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id);
   // Convert packets into ROS messages
   hesai_ros_driver::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg, double timestamp);
-
-  #ifdef __CUDACC__
-    std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
-  #else
-    std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
-  #endif
   // publish point
   std::shared_ptr<ros::NodeHandle> nh_;
   ros::Publisher pub_;
@@ -85,10 +83,6 @@ protected:
   boost::thread* subscription_spin_thread_;
 };
 
-inline std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> SourceDriver:: GetDriverPtr()
-{
-  return driver_ptr_;
-}
 
 inline void SourceDriver::Init(const YAML::Node& config)
 {

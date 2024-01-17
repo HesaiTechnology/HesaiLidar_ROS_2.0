@@ -78,7 +78,7 @@ bool NodeManager::IsPlayEnded() {
   bool all_pcap_end = true;
 #ifdef ROS_FOUND
     for (int i = 0; i < num; i++) {
-      all_pcap_end = GetSourcesDriver()[i]->GetDriverPtr()->lidar_ptr_->IsPlayEnded();
+      all_pcap_end = GetSourcesDriver()[i]->driver_ptr_->lidar_ptr_->IsPlayEnded();
       if (!all_pcap_end) {
         break;
       } 
@@ -90,7 +90,7 @@ bool NodeManager::IsPlayEnded() {
     } 
 #elif ROS2_FOUND
     for (int i = 0; i < num; i++) {
-      all_pcap_end = GetSourcesDriver()[i]->GetDriverPtr()->lidar_ptr_->IsPlayEnded();
+      all_pcap_end = GetSourcesDriver()[i]->driver_ptr_->lidar_ptr_->IsPlayEnded();
       if (!all_pcap_end) {
         break;
       } 

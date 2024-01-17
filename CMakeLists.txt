@@ -153,7 +153,7 @@ if(CUDA_FOUND)
   message(=============================================================)
 
   link_directories($ENV{CUDA_PATH}/lib/x64)
-  set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2;-std=c++17")#根据具体GPU性能更改算力参数
+  set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2")#根据具体GPU性能更改算力参数
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
   list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
 
