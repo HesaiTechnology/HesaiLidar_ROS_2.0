@@ -86,7 +86,10 @@ bool NodeManager::IsPlayEnded() {
     if (all_pcap_end) {
       std::this_thread::sleep_for(std::chrono::seconds(3));
       printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
-      system("rosnode kill rviz");
+      if (system("rosnode kill rviz") == -1)
+      {
+        printf("exec rosnode kill rviz failed\n");
+      }
     } 
 #elif ROS2_FOUND
     for (int i = 0; i < num; i++) {

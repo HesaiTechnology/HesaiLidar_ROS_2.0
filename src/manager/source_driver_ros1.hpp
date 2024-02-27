@@ -242,7 +242,7 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
 
 inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg, double timestamp) {
   hesai_ros_driver::UdpFrame rs_msg;
-  for (int i = 0 ; i < ros_msg.size(); i++) {
+  for (size_t i = 0 ; i < ros_msg.size(); i++) {
     hesai_ros_driver::UdpPacket rawpacket;
     rawpacket.size = ros_msg[i].packet_len;
     rawpacket.data.resize(ros_msg[i].packet_len);
@@ -256,7 +256,7 @@ inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_m
 
 inline void SourceDriver::RecievePacket(const hesai_ros_driver::UdpFrame& msg)
 {
-  for (int i = 0; i < msg.packets.size(); i++) {
+  for (size_t i = 0; i < msg.packets.size(); i++) {
     driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg.packets[i].data[0], msg.packets[i].size);
   }
 }
