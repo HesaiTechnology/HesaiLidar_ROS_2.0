@@ -71,6 +71,9 @@ if($ENV{ROS_VERSION} MATCHES "1")
     FILES
     "UdpPacket.msg"
     "UdpFrame.msg"
+    "LossPacket.msg"
+    "Ptp.msg"
+    "Firetime.msg"
   )
 
   generate_messages(
@@ -111,6 +114,9 @@ if($ENV{ROS_VERSION} MATCHES "2")
     rosidl_generate_interfaces(${PROJECT_NAME}
       "msg/msg_ros2/UdpPacket.msg"
       "msg/msg_ros2/UdpFrame.msg"
+      "msg/msg_ros2/Firetime.msg"
+      "msg/msg_ros2/Ptp.msg"
+      "msg/msg_ros2/LossPacket.msg"
       DEPENDENCIES builtin_interfaces std_msgs
     )
     ament_export_dependencies(rosidl_default_runtime)                 
@@ -145,7 +151,12 @@ add_subdirectory(src/driver/HesaiLidar_SDK_2.0)
 find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
-find_package(CUDA)
+
+# if install different cuda version, set the cuda path
+set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
+find_package(CUDA REQUIRED)
+# find_package(CUDA )
+
 if(CUDA_FOUND)
   
   message(=============================================================)

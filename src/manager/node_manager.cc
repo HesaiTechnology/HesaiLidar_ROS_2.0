@@ -86,9 +86,9 @@ bool NodeManager::IsPlayEnded() {
     if (all_pcap_end) {
       std::this_thread::sleep_for(std::chrono::seconds(3));
       printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
-      if (system("rosnode kill rviz") == -1)
-      {
-        printf("exec rosnode kill rviz failed\n");
+      if (system("rosnode kill rviz") == -1) {
+        printf("Command Execution Error: rosnode kill rviz\n");
+        all_pcap_end = false;;
       }
     } 
 #elif ROS2_FOUND
@@ -102,7 +102,10 @@ bool NodeManager::IsPlayEnded() {
       std::this_thread::sleep_for(std::chrono::seconds(3));
       printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
       std::cout.flush();
-      system("pkill -f rviz2");
+      if (system("pkill -f rviz2") == -1) {
+        printf("Command Execution Error: pkill -f rviz2\n");
+        all_pcap_end = false;
+      }
       std::this_thread::sleep_for(std::chrono::microseconds(1));
       std::cout.flush();
     }
