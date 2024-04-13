@@ -7,7 +7,7 @@ project(hesai_ros_driver)
 #=======================================
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_TINY  6)
+set(VERSION_TINY  7)
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
@@ -152,10 +152,10 @@ find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-# if install different cuda version, set the cuda path
-set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
-find_package(CUDA REQUIRED)
-# find_package(CUDA )
+# if install different cuda version, set the cuda path, like cuda-11.4
+# set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
+# find_package(CUDA REQUIRED)
+find_package(CUDA )
 
 if(CUDA_FOUND)
   
