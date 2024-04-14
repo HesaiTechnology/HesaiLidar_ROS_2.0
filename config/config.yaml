@@ -27,15 +27,15 @@ lidar:
       enable_packet_loss_tool: true     # enable the udp packet loss detection tool
     ros:
       ros_frame_id: hesai_lidar                     #Frame id of packet message and point cloud message
-      ros_recv_correction_topic: /lidar_corrections #Topic used to receive corrections file from rosbag
+      # ros_recv_correction_topic: /lidar_corrections #Topic used to receive corrections file from rosbag
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
       ros_send_packet_topic: /lidar_packets         #Topic used to send lidar raw packets through ROS
       ros_send_point_cloud_topic: /lidar_points     #Topic used to send point cloud through ROS
-      ros_send_correction_topic: /lidar_corrections #Topic used to send correction through ROS
-      ros_send_firetime_topic: /lidar_firetime
+      # ros_send_correction_topic: /lidar_corrections #Topic used to send correction through ROS
+      # ros_send_firetime_topic: /lidar_firetime
       ros_send_packet_loss_topic: /lidar_packets_loss
       # Topic used to monitor packets loss condition through ROS
-      ros_send_ptp_topic: /lidar_ptp
+      # ros_send_ptp_topic: /lidar_ptp
       # Topic used to send PTP lock status, offset through ROS
       send_packet_ros: true                         #true: Send packets through ROS 
       send_point_cloud_ros: true                    #true: Send point cloud through ROS    
