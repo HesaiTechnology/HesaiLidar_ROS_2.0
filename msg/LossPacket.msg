@@ -1,0 +1,2 @@
+uint32 total_packet_count
+uint32 total_packet_loss_count
