@@ -2,8 +2,8 @@ lidar:
   - driver:
       pcap_play_synchronization: true  # pcap play rate synchronize with the host time
       udp_port: 2368                   #UDP port of lidar
-      ptc_port: 9347                   #PTC port of lidar
-      device_ip_address: 192.168.1.201 #host_ip_address
+      ptc_port: 9347                   #PTC port of lidar recv = 2368
+      device_ip_address: 192.168.2.201 #host_ip_address
       pcap_path: "Your pcap file path" #The path of pcap file
       correction_file_path: "/home/ttuna/hesai_ws/src/grand_tour_box/box_bringup/bringup_hesai/config/PandarXT-32.csv" #The path of correction file
       firetimes_path: "/home/ttuna/hesai_ws/src/grand_tour_box/box_bringup/bringup_hesai/config/PandarXT-32_firetime_correction.csv" #The path of firetimes file
