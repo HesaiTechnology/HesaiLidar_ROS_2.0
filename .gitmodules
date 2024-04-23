@@ -1,4 +1,4 @@
-[submodule "driver/hesai_lidar_sdk"]
-	path = driver/hesai_lidar_sdk
+[submodule "src/driver/hesai_lidar_sdk"]
+	path = src/driver/hesai_lidar_sdk
 	url = git@github.com:leggedrobotics/hesai_lidar_sdk.git
 	branch = master

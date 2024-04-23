@@ -132,7 +132,7 @@ find_package(yaml-cpp REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 #Driver core#
-add_subdirectory(${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk)
 
 #========================
 # Build Setup
@@ -159,7 +159,7 @@ if(CUDA_FOUND)
   CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
                 node/hesai_ros_driver_node.cu
                 src/manager/node_manager.cu
-                ./driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src/buffer.cu
+                ./src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src/buffer.cu
                 )
   set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
 
@@ -198,25 +198,25 @@ endif(CUDA_FOUND)
 
 
   target_include_directories(hesai_ros_driver_node PRIVATE
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/Lidar
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpParser
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpParser/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpParser/src
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpProtocol
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/Source/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/Container/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/Container/src
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpParserGpu
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/PtcClient/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/PtcParser/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/PtcParser
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/Logger/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/libhesai/include
-  ${PROJECT_SOURCE_DIR}/driver/hesai_lidar_sdk/driver
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/Lidar
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpParser
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpParser/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpParser/src
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpProtocol
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/Source/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/Container/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/Container/src
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/PtcClient/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/PtcParser/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/PtcParser
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/Logger/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/libhesai/include
+  ${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk/driver
   src/manager
   src/msg/ros_msg
   src/msg/rs_msg
