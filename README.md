@@ -1,6 +1,6 @@
 # Introduction to HesaiLidar_ROS_2.0
 This repository includes the ROS Driver for Hesai LiDAR sensor manufactured by Hesai Technology. 
-Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/HesaiLidar_SDK_2.0), After launched, the project will monitor UDP packets from Lidar,parse data and publish point cloud frames into ROS topic
+Developed based on [hesai_lidar_sdk](https://github.com/HesaiTechnology/hesai_lidar_sdk), After launched, the project will monitor UDP packets from Lidar,parse data and publish point cloud frames into ROS topic
 
 ## Support Lidar type
 - Pandar
