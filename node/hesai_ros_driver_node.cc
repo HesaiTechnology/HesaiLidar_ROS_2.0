@@ -70,7 +70,7 @@ int main(int argc, char** argv)
   std::string config_path;
 
 #ifdef RUN_IN_ROS_WORKSPACE
-   config_path = ros::package::getPath("hesai_ros_driver");
+   config_path = ros::package::getPath("bringup_hesai");
 #else
    config_path = (std::string)PROJECT_PATH;
 #endif
