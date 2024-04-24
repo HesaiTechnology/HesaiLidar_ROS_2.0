@@ -75,7 +75,7 @@ int main(int argc, char** argv)
    config_path = (std::string)PROJECT_PATH;
 #endif
 
-   config_path += "/config/config.yaml";
+   config_path += "/config/hesaiXT32_config.yaml";
 
 #ifdef ROS_FOUND
   ros::NodeHandle priv_hh("~");
@@ -86,6 +86,7 @@ int main(int argc, char** argv)
     config_path = path;
   }
 #endif
+  std::cout << "Hesai Lidar ROS config_path: " << config_path << std::endl;
 
   YAML::Node config;
   config = YAML::LoadFile(config_path);
