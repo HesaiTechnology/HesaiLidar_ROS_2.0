@@ -79,10 +79,11 @@ int main(int argc, char** argv)
 
 #ifdef ROS_FOUND
   ros::NodeHandle priv_hh("~");
-  std::string path;
-  priv_hh.param("config_path", path, std::string(""));
+  std::string path = "";
+  priv_hh.getParam("config_path", path);
   if (!path.empty())
   {
+    std::cout << "Path loaded from ROS params." << std::endl;
     config_path = path;
   }
 #endif
