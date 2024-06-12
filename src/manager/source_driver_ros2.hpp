@@ -30,6 +30,7 @@
 
 #pragma once
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/clock.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <sstream>
 #include <hesai_ros_driver/msg/udp_frame.hpp>
@@ -214,10 +215,15 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   sensor_msgs::PointCloud2Iterator<float> iter_intensity_(ros_msg, "intensity");
   sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring_(ros_msg, "ring");
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
-  
+  rclcpp::Clock clock(RCL_ROS_TIME);
+  rclcpp::Time current_time = clock.now();
+  ros_msg.header.stamp = current_time;
+  int64_t nanoseconds = current_time.nanoseconds();
+  double timestamp_seconds = static_cast<double>(nanoseconds) * 1e-9;
   for (size_t i = 0; i < frame.points_num; i++)
   {
     LidarPointXYZIRT point = frame.points[i];
+    frame.points[i].timestamp=timestamp_seconds;
     *iter_x_ = point.x;
     *iter_y_ = point.y;
     *iter_z_ = point.z;
