@@ -16,7 +16,7 @@ lidar:
       z: 0
       roll: 0
       pitch: 0
-      yaw: 0
+      yaw: 1.57079632679
     ros:
       ros_frame_id: hesai_top_base_link                      #Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
