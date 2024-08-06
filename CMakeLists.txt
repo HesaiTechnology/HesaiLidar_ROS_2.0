@@ -32,6 +32,7 @@ message(=============================================================)
 set(PROJECT_NAME hesai_ros_driver)
 
 add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
+add_definitions(-O3)
 
 if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE Release)
@@ -143,58 +144,57 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk)
 #                src/manager/node_manager.cpp
 #                )
 
-
-find_package(CUDA)
-if(CUDA_FOUND)
+# find_package(CUDA)
+# if(CUDA_FOUND)
   
-  message(=============================================================)
-  message("-- CUDA Found. CUDA Support is turned On.")
-  message(=============================================================)
+#   message(=============================================================)
+#   message("-- CUDA Found. CUDA Support is turned On.")
+#   message(=============================================================)
 
-  link_directories($ENV{CUDA_PATH}/lib/x64)
-  set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2;-std=c++17")#根据具体GPU性能更改算力参数
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
-  list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
+#   link_directories($ENV{CUDA_PATH}/lib/x64)
+#   set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2;-std=c++17")#根据具体GPU性能更改算力参数
+#   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
+#   list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
 
-  CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
-                node/hesai_ros_driver_node.cu
-                src/manager/node_manager.cu
-                ./src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src/buffer.cu
-                )
-  set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
+#   CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
+#                 node/hesai_ros_driver_node.cu
+#                 src/manager/node_manager.cu
+#                 ./src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src/buffer.cu
+#                 )
+#   set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
 
-  target_link_libraries(hesai_ros_driver_node                   
-                ${YAML_CPP_LIBRARIES}
-                ${Boost_LIBRARIES}
-                source_lib
-                container_lib
-                ptcClient_lib
-                ptcParser_lib
-                log_lib
-                ${CUDA_LIBS}
-                # libhesai
-    )
-else(CUDA_FOUND)
+#   target_link_libraries(hesai_ros_driver_node                   
+#                 ${YAML_CPP_LIBRARIES}
+#                 ${Boost_LIBRARIES}
+#                 source_lib
+#                 container_lib
+#                 ptcClient_lib
+#                 ptcParser_lib
+#                 log_lib
+#                 ${CUDA_LIBS}
+#                 # libhesai
+#     )
+# else(CUDA_FOUND)
 
-  message(=============================================================)
-  message("-- CUDA Not Found. CUDA Support is turned Off.")
-  message(=============================================================)
-  add_executable(hesai_ros_driver_node
-                node/hesai_ros_driver_node.cc
-                src/manager/node_manager.cc
-                )
-  target_link_libraries(hesai_ros_driver_node                   
-              ${YAML_CPP_LIBRARIES}
-              ${Boost_LIBRARIES}
-              source_lib
-              container_lib
-              ptcClient_lib
-              ptcParser_lib
-              log_lib
-              # libhesai
+message(=============================================================)
+message("-- CUDA Not Found. CUDA Support is turned Off.")
+message(=============================================================)
+add_executable(hesai_ros_driver_node
+              node/hesai_ros_driver_node.cc
+              src/manager/node_manager.cc
+              )
+target_link_libraries(hesai_ros_driver_node                   
+            ${YAML_CPP_LIBRARIES}
+            ${Boost_LIBRARIES}
+            source_lib
+            container_lib
+            ptcClient_lib
+            ptcParser_lib
+            log_lib
+            # libhesai
   )            
 
-endif(CUDA_FOUND)
+# endif(CUDA_FOUND)
 
 
   target_include_directories(hesai_ros_driver_node PRIVATE

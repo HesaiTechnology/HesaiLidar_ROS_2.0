@@ -1,0 +1,26 @@
+lidar:
+  - driver:
+      pcap_play_synchronization: false  # pcap play rate synchronize with the host time
+      udp_port: 2368                   #UDP port of lidar
+      ptc_port: 9347                   #PTC port of lidar recv = 2368
+      device_ip_address: 192.168.2.201 #host_ip_address
+      pcap_path: "Your pcap file path" #The path of pcap file
+      correction_file_path: "/home/tutuna/box_ws/src/grand_tour_box/box_drivers/hesai_lidar_ros_driver/config/PandarXT-32.csv" #The path of correction file
+      firetimes_path: "/home/tutuna/box_ws/src/grand_tour_box/box_drivers/hesai_lidar_ros_driver/config/PandarXT-32_firetime_correction.csv" #The path of firetimes file
+      source_type: 3                   #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag    
+      frame_start_azimuth: 200         # Doesnt matter for hesaixt32.
+                                       #do not want to use it.
+      #transform param
+      x: 0
+      y: 0
+      z: 0
+      roll: 0
+      pitch: 0
+      yaw: 0
+    ros:
+      ros_frame_id: hesaiXT32                      #Frame id of packet message and point cloud message
+      ros_recv_packet_topic: /gt_box/hesai/packets         #Topic used to receive lidar packets from rosbag
+      ros_send_packet_topic: /gt_box/hesai/packets         #Topic used to send lidar raw packets through ROS
+      ros_send_point_cloud_topic: /gt_box/hesai/points     #Topic used to send point cloud through ROS
+      send_packet_ros: false                         #true: Send packets through ROS 
+      send_point_cloud_ros: true                     #true: Send point cloud through ROS   
