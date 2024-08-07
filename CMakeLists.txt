@@ -32,7 +32,6 @@ message(=============================================================)
 set(PROJECT_NAME hesai_ros_driver)
 
 add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
-add_definitions(-O3)
 
 if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE Release)

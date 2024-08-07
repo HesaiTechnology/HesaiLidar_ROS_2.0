@@ -47,7 +47,7 @@ public:
         YamlRead<bool>(       config["ros"], "send_point_cloud_ros",       driver_param.input_param.send_point_cloud_ros, false);
         YamlRead<bool>(       config["ros"], "save_replayed_topics_to_rosbag",       driver_param.input_param.save_replayed_topics_to_rosbag, false);
         YamlRead<std::string>(config["ros"], "ros_frame_id",               driver_param.input_param.frame_id, "hesai_lidar");
-        YamlRead<std::string>(config["ros"], "output_rosbag_path",         driver_param.input_param.output_rosbag_path, "/tmp/hesaiXT32_data.bag");
+        YamlRead<std::string>(config["ros"], "output_rosbag_directory",    driver_param.input_param.output_rosbag_directory, "/tmp/");
         YamlRead<std::string>(config["ros"], "ros_send_packet_topic",      driver_param.input_param.ros_send_packet_topic, "hesai_packets");
         YamlRead<std::string>(config["ros"], "ros_send_point_cloud_topic", driver_param.input_param.ros_send_point_topic, "hesai_points");
         YamlRead<std::string>(config["ros"], "ros_recv_packet_topic",      driver_param.input_param.ros_recv_packet_topic, "hesai_packets");

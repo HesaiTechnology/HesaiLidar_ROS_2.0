@@ -117,35 +117,15 @@ protected:
 
 inline void SourceDriver::Init(const YAML::Node& config)
 {
+  nh_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
   
   DriverParam driver_param;
   DriveYamlParam yaml_param;
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
 
-  // Get the directory of the ros package
-  std::string package_path = ros::package::getPath("hesai_ros_driver");
-
-  // Generate the log file name
-  std::string outBagPath_ = package_path + "/hesaiXT32_data.bag";
-
-  if (driver_param.input_param.output_rosbag_path != "") {
-    outBagPath_ = driver_param.input_param.output_rosbag_path;
-  }
-
   save_replayed_topics_to_rosbag_ = driver_param.input_param.save_replayed_topics_to_rosbag;
-  if (save_replayed_topics_to_rosbag_)
-  {
-    // Remove the old bag file
-    std::remove(outBagPath_.c_str());
 
-    // Open the new bag file
-    outputBag.open(outBagPath_, rosbag::bagmode::Write); 
-
-  }
-  
-
-  nh_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
   if (driver_param.input_param.send_point_cloud_ros) {
     pub_ = nh_->advertise<sensor_msgs::PointCloud2>(driver_param.input_param.ros_send_point_topic, 10);
   }
@@ -174,7 +154,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
   }
 
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
-    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
+    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 10000, &SourceDriver::RecievePacket, this);
 
     if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {
       crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::RecieveCorrection, this);
@@ -212,6 +192,32 @@ inline void SourceDriver::Init(const YAML::Node& config)
   }
   // We use sim time true so should be okay.
   latestCloudStamp_ = ros::Time::now();
+  // print ros time now
+  std::cout << "ros time now:" << latestCloudStamp_ << std::endl;
+
+  if (save_replayed_topics_to_rosbag_)
+  {
+    std::string outBagPath_ ="";
+    // Get the directory of the ros package
+    // std::string packagePath = ros::package::getPath("hesai_ros_driver");
+      
+    // Generate the log file name
+    std::string outBagDirectory_ = ros::package::getPath("hesai_ros_driver") + "/data/";
+    std::string outBagName_ = "hesaiXT32_" + std::to_string(ros::Time::now().toSec()) + ".bag";
+
+    if (driver_param.input_param.output_rosbag_directory != "") {
+      outBagPath_ = driver_param.input_param.output_rosbag_directory + outBagName_;
+    }else{
+      outBagPath_ = outBagDirectory_ + outBagName_;
+    }
+
+    // Remove the old bag file
+    std::remove(outBagPath_.c_str());
+
+    // Open the new bag file
+    outputBag.open(outBagPath_, rosbag::bagmode::Write); 
+  }
+
 }
 
 inline void SourceDriver::Start()
@@ -388,6 +394,8 @@ inline void SourceDriver::RecievePacket(const hesai_ros_driver::UdpFrame& msg)
   for (size_t i = 0; i < msg.packets.size(); i++) {
     driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg.packets[i].data[0], msg.packets[i].size);
   }
+
+  // printf("Receiving Buffer Size:%lu\n",driver_ptr_->lidar_ptr_->origin_packets_buffer_.size());
 }
 
 inline void SourceDriver::RecieveCorrection(const std_msgs::UInt8MultiArray& msg)
