@@ -6,8 +6,8 @@ lidar:
       device_ip_address: 192.168.2.201 #host_ip_address
       group_address: 255.255.255.255
       pcap_path: "Your pcap file path" #The path of pcap file
-      correction_file_path: "/home/tutuna/box_ws/src/grand_tour_box/box_drivers/hesai_lidar_ros_driver/config/PandarXT-32.csv" #The path of correction file
-      firetimes_path: "/home/tutuna/box_ws/src/grand_tour_box/box_drivers/hesai_lidar_ros_driver/config/PandarXT-32_firetime_correction.csv" #The path of firetimes file
+      correction_file_path: "/home/rsl/git/grand_tour_box/box_bringup/bringup_hesai/config/PandarXT-32.csv" #The path of correction file
+      firetimes_path: "/home/rsl/git/grand_tour_box/box_bringup/bringup_hesai/config/PandarXT-32_firetime_correction.csv" #The path of firetimes file
       source_type: 3                   #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag    
       frame_start_azimuth: 200         #Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it
       standby_mode: -1                 #The standby mode: [-1] is invalit [0] in operation [1] standby
