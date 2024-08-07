@@ -1,6 +1,6 @@
 <launch>
   <node pkg="hesai_ros_driver" name="hesai_ros_driver_node" type="hesai_ros_driver_node" output="screen">
-    <param name="config_path" type="string" value= "$(find bringup_hesai)/config/hesaiXT32_config.yaml"/>
+    <param name="config_path" type="string" value= "$(find hesai_ros_driver)/config/packet_replay.yaml"/>
   </node>
   <!-- rviz -->
   <node pkg="rviz" name="rviz" type="rviz" args="-d '$(find hesai_ros_driver)/rviz/rviz.rviz'" required="true"/>

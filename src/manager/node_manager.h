@@ -47,10 +47,10 @@ public:
   void Start();
   // Stop working
   void Stop();
-
+  bool IsPlayEnded();
   ~NodeManager();
   NodeManager() = default;
-
+  std::vector<SourceDriver::Ptr> GetSourcesDriver();
 private:
 
   std::vector<SourceDriver::Ptr> sources_driver_;

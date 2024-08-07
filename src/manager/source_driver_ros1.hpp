@@ -30,15 +30,17 @@
 
 #pragma once
 #include <ros/ros.h>
+#include <rosbag/bag.h>
+#include "std_msgs/UInt8MultiArray.h"
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include "hesai_ros_driver/UdpFrame.h"
 #include "hesai_ros_driver/UdpPacket.h"
+#include "hesai_ros_driver/LossPacket.h"
+#include "hesai_ros_driver/Ptp.h"
+#include "hesai_ros_driver/Firetime.h"
+#include <boost/thread.hpp>
+#include "source_drive_common.hpp"
 
-#ifdef __CUDACC__
-  #include "hesai_lidar_sdk_gpu.cuh"
-#else
-  #include "hesai_lidar_sdk.hpp"
-#endif
 class SourceDriver
 {
 public:
@@ -55,23 +57,45 @@ public:
     ros::MultiThreadedSpinner spinner(2); 
     spinner.spin();
   }
+  rosbag::Bag outputBag;
+  ros::Time latestCloudStamp_;
+  bool save_replayed_topics_to_rosbag_ = false;
+  #ifdef __CUDACC__
+    std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
+  #else
+    std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
+  #endif
 protected:
+  // Save Correction file subscribed by "ros_recv_correction_topic"
+  void RecieveCorrection(const std_msgs::UInt8MultiArray& msg);
   // Save packets subscribed by 'ros_recv_packet_topic'
   void RecievePacket(const hesai_ros_driver::UdpFrame& msg);
   // Used to publish point clouds through 'ros_send_point_cloud_topic'
   void SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg);
   // Used to publish the original pcake through 'ros_send_packet_topic'
   void SendPacket(const UdpFrame_t&  ros_msg, double);
+  // Build the log file name
+  std::string buildUpLogFilename(const std::string& typeSuffix, const std::string& extension = ".txt");
+  // Used to publish the Correction file through 'ros_send_correction_topic'
+  void SendCorrection(const u8Array_t& msg);
+  // Used to publish the Packet loss condition
+  void SendPacketLoss(const uint32_t& total_packet_count, const uint32_t& total_packet_loss_count);
+  // Used to publish the Packet loss condition
+  void SendPTP(const uint8_t& ptp_lock_offset, const u8Array_t& ptp_status);
+  // Used to publish the firetime correction 
+  void SendFiretime(const double *firetime_correction_);
+  // Convert ptp lock offset, status into ROS message
+  hesai_ros_driver::Ptp ToRosMsg(const uint8_t& ptp_lock_offset, const u8Array_t& ptp_status);
+  // Convert packet loss condition into ROS message
+  hesai_ros_driver::LossPacket ToRosMsg(const uint32_t& total_packet_count, const uint32_t& total_packet_loss_count);
+  // Convert correction string into ROS messages
+  std_msgs::UInt8MultiArray ToRosMsg(const u8Array_t& correction_string);
   // Convert point clouds into ROS messages
   sensor_msgs::PointCloud2 ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id);
   // Convert packets into ROS messages
   hesai_ros_driver::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg, double timestamp);
-
-  #ifdef __CUDACC__
-    std::shared_ptr<HesaiLidarSdkGpu<LidarPointXYZIRT>> driver_ptr_;
-  #else
-    std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
-  #endif
+  // Convert double[512] to float64[512]
+  hesai_ros_driver::Firetime ToRosMsg(const double *firetime_correction_);
   // publish point
   std::shared_ptr<ros::NodeHandle> nh_;
   ros::Publisher pub_;
@@ -82,67 +106,83 @@ protected:
   ros::Subscriber pkt_sub_;
   //spin thread while recieve data from ROS topic
   boost::thread* subscription_spin_thread_;
+
+  ros::Publisher crt_pub_;
+  ros::Publisher firetime_pub_;
+  ros::Publisher loss_pub_;
+  ros::Publisher ptp_pub_;
+  ros::Subscriber crt_sub_;
 };
 
 
 inline void SourceDriver::Init(const YAML::Node& config)
 {
-  YAML::Node driver_config = YamlSubNodeAbort(config, "driver");
+  
   DriverParam driver_param;
-  // input related
-  YamlRead<uint16_t>(driver_config, "udp_port", driver_param.input_param.udp_port, 2368);
-  YamlRead<uint16_t>(driver_config, "ptc_port", driver_param.input_param.ptc_port, 9347);
-  YamlRead<std::string>(driver_config, "host_ip_address", driver_param.input_param.host_ip_address, "192.168.1.100");
-  YamlRead<std::string>(driver_config, "group_address", driver_param.input_param.multicast_ip_address, "");
-  YamlRead<std::string>(driver_config, "pcap_path", driver_param.input_param.pcap_path, "");
-  YamlRead<std::string>(driver_config, "firetimes_path",driver_param.input_param.firetimes_path, "");
-  YamlRead<std::string>(driver_config, "correction_file_path", driver_param.input_param.correction_file_path, "");
-  
-  // decoder related
-  YamlRead<bool>(driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, true);
-  YamlRead<float>(driver_config, "x", driver_param.decoder_param.transform_param.x, 0);
-  YamlRead<float>(driver_config, "y", driver_param.decoder_param.transform_param.y, 0);
-  YamlRead<float>(driver_config, "z", driver_param.decoder_param.transform_param.z, 0);
-  YamlRead<float>(driver_config, "roll", driver_param.decoder_param.transform_param.roll, 0);
-  YamlRead<float>(driver_config, "pitch", driver_param.decoder_param.transform_param.pitch, 0);
-  YamlRead<float>(driver_config, "yaw", driver_param.decoder_param.transform_param.yaw, 0);
-  YamlRead<std::string>(driver_config, "device_ip_address", driver_param.input_param.device_ip_address, "192.168.1.201");
-  YamlRead<float>(driver_config, "frame_start_azimuth", driver_param.decoder_param.frame_start_azimuth, -1);
-  
-  int source_type = 0;
-  YamlRead<int>(driver_config, "source_type", source_type, 0);
-  driver_param.input_param.source_type = SourceType(source_type);
-  bool send_packet_ros;
-  YamlRead<bool>(config["ros"], "send_packet_ros", send_packet_ros, false);
-  bool send_point_cloud_ros;
-  YamlRead<bool>(config["ros"], "send_point_cloud_ros", send_point_cloud_ros, false);
-  YamlRead<std::string>(config["ros"], "ros_frame_id", frame_id_, "hesai_lidar");
-  std::string ros_send_packet_topic;
-  YamlRead<std::string>(config["ros"], "ros_send_packet_topic", ros_send_packet_topic, "hesai_packets");
-  std::string ros_send_point_topic;
-  YamlRead<std::string>(config["ros"], "ros_send_point_cloud_topic", ros_send_point_topic, "hesai_points");
+  DriveYamlParam yaml_param;
+  yaml_param.GetDriveYamlParam(config, driver_param);
+  frame_id_ = driver_param.input_param.frame_id;
 
-  nh_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
-  if (send_point_cloud_ros) {
-    std::string ros_send_point_topic;
-    YamlRead<std::string>(config["ros"], "ros_send_point_cloud_topic", ros_send_point_topic, "hesai_points");
-    pub_ = nh_->advertise<sensor_msgs::PointCloud2>(ros_send_point_topic, 10);
+  // Get the directory of the ros package
+  std::string package_path = ros::package::getPath("hesai_ros_driver");
+
+  // Generate the log file name
+  std::string outBagPath_ = package_path + "/hesaiXT32_data.bag";
+
+  if (driver_param.input_param.output_rosbag_path != "") {
+    outBagPath_ = driver_param.input_param.output_rosbag_path;
   }
 
-  if (send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET) {
-    std::string ros_send_packet_topic;
-    YamlRead<std::string>(config["ros"], "ros_send_packet_topic", ros_send_packet_topic, "hesai_packets");
-    pkt_pub_ = nh_->advertise<hesai_ros_driver::UdpFrame>(ros_send_packet_topic, 10);
+  save_replayed_topics_to_rosbag_ = driver_param.input_param.save_replayed_topics_to_rosbag;
+  if (save_replayed_topics_to_rosbag_)
+  {
+    // Remove the old bag file
+    std::remove(outBagPath_.c_str());
+
+    // Open the new bag file
+    outputBag.open(outBagPath_, rosbag::bagmode::Write); 
+
+  }
+  
+
+  nh_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
+  if (driver_param.input_param.send_point_cloud_ros) {
+    pub_ = nh_->advertise<sensor_msgs::PointCloud2>(driver_param.input_param.ros_send_point_topic, 10);
+  }
+  
+  if (driver_param.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
+    loss_pub_ = nh_->advertise<hesai_ros_driver::LossPacket>(driver_param.input_param.ros_send_packet_loss_topic, 10);
+  } 
+
+  if (driver_param.input_param.source_type == DATA_FROM_LIDAR) {
+    if (driver_param.input_param.ros_send_ptp_topic != NULL_TOPIC) {
+      ptp_pub_ = nh_->advertise<hesai_ros_driver::Ptp>(driver_param.input_param.ros_send_ptp_topic, 10);
+    } 
+
+    if (driver_param.input_param.ros_send_correction_topic != NULL_TOPIC) {
+      crt_pub_ = nh_->advertise<std_msgs::UInt8MultiArray>(driver_param.input_param.ros_send_correction_topic, 10);
+    } 
+  }
+  if (! driver_param.input_param.firetimes_path.empty() ) {
+    if (driver_param.input_param.ros_send_firetime_topic != NULL_TOPIC) {
+      firetime_pub_ = nh_->advertise<hesai_ros_driver::Firetime>(driver_param.input_param.ros_send_firetime_topic, 10);
+    } 
+  }
+
+  if (driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET) {
+    pkt_pub_ = nh_->advertise<hesai_ros_driver::UdpFrame>(driver_param.input_param.ros_send_packet_topic, 10);
   }
 
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
-    std::string ros_recv_packet_topic;
-    YamlRead<std::string>(config["ros"], "ros_recv_packet_topic", ros_recv_packet_topic, "hesai_packets");
-    pkt_sub_ = nh_->subscribe(ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
+    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
+
+    if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {
+      crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::RecieveCorrection, this);
+    }
+
     driver_param.decoder_param.enable_udp_thread = false;
     subscription_spin_thread_ = new boost::thread(boost::bind(&SourceDriver::SpinRos1,this));
   }
-
   #ifdef __CUDACC__
     driver_ptr_.reset(new HesaiLidarSdkGpu<LidarPointXYZIRT>());
     driver_param.decoder_param.enable_parser_thread = false;
@@ -151,14 +191,27 @@ inline void SourceDriver::Init(const YAML::Node& config)
     driver_param.decoder_param.enable_parser_thread = true;
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
-  if(send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
+  if(driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
+  }
+  if (driver_param.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
+    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacketLoss, this, std::placeholders::_1, std::placeholders::_2));
+  }
+  if (driver_param.input_param.source_type == DATA_FROM_LIDAR) {
+    if (driver_param.input_param.ros_send_correction_topic != NULL_TOPIC) {
+      driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendCorrection, this, std::placeholders::_1));
+    }
+    if (driver_param.input_param.ros_send_ptp_topic != NULL_TOPIC) {
+      driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPTP, this, std::placeholders::_1, std::placeholders::_2));
+    }
   } 
   if (!driver_ptr_->Init(driver_param))
   {
     std::cout << "Driver Initialize Error...." << std::endl;
     exit(-1);
   }
+  // We use sim time true so should be okay.
+  latestCloudStamp_ = ros::Time::now();
 }
 
 inline void SourceDriver::Start()
@@ -168,11 +221,13 @@ inline void SourceDriver::Start()
 
 inline SourceDriver::~SourceDriver()
 {
+  std::cout << "Stoping...." << std::endl;
   Stop();
 }
 
 inline void SourceDriver::Stop()
 {
+  outputBag.close();
   driver_ptr_->Stop();
 }
 
@@ -186,14 +241,45 @@ inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIR
   pub_.publish(ToRosMsg(msg, frame_id_));
 }
 
+inline void SourceDriver::SendCorrection(const u8Array_t& msg)
+{
+  crt_pub_.publish(ToRosMsg(msg));
+}
+
+inline void SourceDriver::SendPacketLoss(const uint32_t& total_packet_count, const uint32_t& total_packet_loss_count)
+{
+  loss_pub_.publish(ToRosMsg(total_packet_count, total_packet_loss_count));
+}
+
+inline void SourceDriver::SendPTP(const uint8_t& ptp_lock_offset, const u8Array_t& ptp_status)
+{
+  ptp_pub_.publish(ToRosMsg(ptp_lock_offset, ptp_status));
+}
+
+inline void SourceDriver::SendFiretime(const double *firetime_correction_)
+{
+  firetime_pub_.publish(ToRosMsg(firetime_correction_));
+}
+
 inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id)
 {
   sensor_msgs::PointCloud2 ros_msg;
 
+
+  uint32_t frameSize = frame.points_num;
+
+  if (save_replayed_topics_to_rosbag_)
+  {
+    if (frameSize > 64000)
+    {
+      frameSize = 64000;
+    }
+  }
+
   int fields = 6;
   ros_msg.fields.clear();
   ros_msg.fields.reserve(fields);
-  ros_msg.width = frame.points_num; 
+  ros_msg.width = frameSize; 
   ros_msg.height = 1; 
 
   int offset = 0;
@@ -207,7 +293,7 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   ros_msg.point_step = offset;
   ros_msg.row_step = ros_msg.width * ros_msg.point_step;
   ros_msg.is_dense = false;
-  ros_msg.data.resize(frame.points_num * ros_msg.point_step);
+  ros_msg.data.resize(frameSize * ros_msg.point_step);
 
   sensor_msgs::PointCloud2Iterator<float> iter_x_(ros_msg, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y_(ros_msg, "y");
@@ -215,7 +301,7 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   sensor_msgs::PointCloud2Iterator<float> iter_intensity_(ros_msg, "intensity");
   sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring_(ros_msg, "ring");
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
-  for (size_t i = 0; i < frame.points_num; i++)
+  for (size_t i = 0; i < frameSize; i++)
   {
     LidarPointXYZIRT point = frame.points[i];
     *iter_x_ = point.x;
@@ -233,14 +319,21 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   }
   printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
   // ros_msg.header.seq = s;
-  ros_msg.header.stamp = ros::Time().fromSec(frame.points[0].timestamp);
+
+  latestCloudStamp_ = ros::Time().fromSec(frame.points[0].timestamp);
+  ros_msg.header.stamp = latestCloudStamp_;
   ros_msg.header.frame_id = frame_id_;
+  if (save_replayed_topics_to_rosbag_)
+  {
+  outputBag.write("/gt_box/hesai/points", latestCloudStamp_, ros_msg);
+  }
+
   return ros_msg;
 }
 
 inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg, double timestamp) {
   hesai_ros_driver::UdpFrame rs_msg;
-  for (int i = 0 ; i < ros_msg.size(); i++) {
+  for (size_t i = 0 ; i < ros_msg.size(); i++) {
     hesai_ros_driver::UdpPacket rawpacket;
     rawpacket.size = ros_msg[i].packet_len;
     rawpacket.data.resize(ros_msg[i].packet_len);
@@ -252,11 +345,58 @@ inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_m
   return rs_msg;
 }
 
+inline std_msgs::UInt8MultiArray SourceDriver::ToRosMsg(const u8Array_t& correction_string) {
+  std_msgs::UInt8MultiArray msg;
+  msg.data.resize(correction_string.size());
+  std::copy(correction_string.begin(), correction_string.end(), msg.data.begin());
+  return msg;
+}
+
+inline hesai_ros_driver::LossPacket SourceDriver::ToRosMsg(const uint32_t& total_packet_count, const uint32_t& total_packet_loss_count)
+{
+  hesai_ros_driver::LossPacket msg;
+  msg.total_packet_count = total_packet_count;
+  msg.total_packet_loss_count = total_packet_loss_count;  
+  if (save_replayed_topics_to_rosbag_)
+  {
+    outputBag.write("/gt_box/hesai/packet_loss", latestCloudStamp_, msg);
+  }
+  return msg;
+}
+
+inline hesai_ros_driver::Ptp SourceDriver::ToRosMsg(const uint8_t& ptp_lock_offset, const u8Array_t& ptp_status)
+{
+  hesai_ros_driver::Ptp msg;
+  msg.ptp_lock_offset = ptp_lock_offset;
+  std::copy(ptp_status.begin(), ptp_status.begin() + std::min(16ul, ptp_status.size()), msg.ptp_status.begin());
+  if (save_replayed_topics_to_rosbag_)
+  {
+    outputBag.write("/gt_box/hesai/ptp", latestCloudStamp_, msg);
+  }
+  return msg;
+}
+
+inline hesai_ros_driver::Firetime SourceDriver::ToRosMsg(const double *firetime_correction_)
+{
+  hesai_ros_driver::Firetime msg;
+  std::copy(firetime_correction_, firetime_correction_ + 512, msg.data.begin());
+  return msg;
+}
+
 inline void SourceDriver::RecievePacket(const hesai_ros_driver::UdpFrame& msg)
 {
-  for (int i = 0; i < msg.packets.size(); i++) {
+  for (size_t i = 0; i < msg.packets.size(); i++) {
     driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg.packets[i].data[0], msg.packets[i].size);
   }
 }
 
-
+inline void SourceDriver::RecieveCorrection(const std_msgs::UInt8MultiArray& msg)
+{
+  driver_ptr_->lidar_ptr_->correction_string_.resize(msg.data.size());
+  std::copy(msg.data.begin(), msg.data.end(), driver_ptr_->lidar_ptr_->correction_string_.begin());
+  while (1) {
+    if (! driver_ptr_->lidar_ptr_->LoadCorrectionFromROSbag()) {
+      break;
+    }
+  }
+}

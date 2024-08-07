@@ -2,14 +2,16 @@ lidar:
   - driver:
       pcap_play_synchronization: false  # pcap play rate synchronize with the host time
       udp_port: 2368                   #UDP port of lidar
-      ptc_port: 9347                   #PTC port of lidar recv = 2368
+      ptc_port: 9347                   #PTC port of lidar
       device_ip_address: 192.168.2.201 #host_ip_address
+      group_address: 255.255.255.255
       pcap_path: "Your pcap file path" #The path of pcap file
       correction_file_path: "/home/tutuna/box_ws/src/grand_tour_box/box_drivers/hesai_lidar_ros_driver/config/PandarXT-32.csv" #The path of correction file
       firetimes_path: "/home/tutuna/box_ws/src/grand_tour_box/box_drivers/hesai_lidar_ros_driver/config/PandarXT-32_firetime_correction.csv" #The path of firetimes file
       source_type: 3                   #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag    
-      frame_start_azimuth: 200         # Doesnt matter for hesaixt32.
-                                       #do not want to use it.
+      frame_start_azimuth: 200         #Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it
+      standby_mode: -1                 #The standby mode: [-1] is invalit [0] in operation [1] standby
+      speed: 600                        #The speed: [-1] invalit, you must make sure your set has been supported by the lidar you are using
       #transform param
       x: 0
       y: 0
@@ -17,10 +19,25 @@ lidar:
       roll: 0
       pitch: 0
       yaw: 0
+      #decoder param
+      use_timestamp_type: 0           #0 use point cloud timestamp; 1 use receive timestamp
+      #fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
+      fov_start: -1
+      fov_end:  -1
+      enable_packet_loss_tool: true     # enable the udp packet loss detection tool
     ros:
-      ros_frame_id: hesaiXT32                      #Frame id of packet message and point cloud message
+      ros_frame_id: hesaiXT32                     #Frame id of packet message and point cloud message
+      save_replayed_topics_to_rosbag: true
+      output_rosbag_path: /tmp/hesai.bag  #if left empty, it will save to /data in this driver.
+      # Topic used to monitor packets loss condition through ROS
+      ros_send_packet_loss_topic: /gt_box/hesai/lidar_packets_loss
       ros_recv_packet_topic: /gt_box/hesai/packets         #Topic used to receive lidar packets from rosbag
       ros_send_packet_topic: /gt_box/hesai/packets         #Topic used to send lidar raw packets through ROS
       ros_send_point_cloud_topic: /gt_box/hesai/points     #Topic used to send point cloud through ROS
-      send_packet_ros: false                         #true: Send packets through ROS 
-      send_point_cloud_ros: true                     #true: Send point cloud through ROS   
+      # ros_recv_correction_topic: /lidar_corrections #Topic used to receive corrections file from rosbag
+      # ros_send_correction_topic: /gt_box/lidar_corrections #Topic used to send correction through ROS
+      # ros_send_firetime_topic: /gt_box/lidar_firetime
+      # ros_send_ptp_topic: /gt_box/hesai/lidar_ptp
+      # Topic used to send PTP lock status, offset through ROS
+      send_packet_ros: true                         #true: Send packets through ROS 
+      send_point_cloud_ros: true                    #true: Send point cloud through ROS    

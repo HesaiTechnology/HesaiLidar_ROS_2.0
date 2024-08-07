@@ -7,7 +7,7 @@ project(hesai_ros_driver)
 #=======================================
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_TINY  5)
+set(VERSION_TINY  7)
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
@@ -56,8 +56,9 @@ add_compile_options(-Wall)
 if($ENV{ROS_VERSION} MATCHES "1")
   find_package(roscpp 1.12 QUIET)
   find_package(roslib QUIET)
-  include_directories(${roscpp_INCLUDE_DIRS} ${roslib_INCLUDE_DIRS})
-  set(ROS_LIBS ${roscpp_LIBRARIES} ${roslib_LIBRARIES})
+  find_package(rosbag REQUIRED)
+  include_directories(${roscpp_INCLUDE_DIRS} ${roslib_INCLUDE_DIRS} ${rosbag_INCLUDE_DIRS})
+  set(ROS_LIBS ${roscpp_LIBRARIES} ${roslib_LIBRARIES} ${rosbag_LIBRARIES})
   add_definitions(-DROS_FOUND)
   add_definitions(-DRUN_IN_ROS_WORKSPACE)
 
@@ -66,12 +67,16 @@ if($ENV{ROS_VERSION} MATCHES "1")
     sensor_msgs
     std_msgs
     message_generation
-    roslib)
+    roslib
+    rosbag)
 
   add_message_files(
     FILES
     "UdpPacket.msg"
     "UdpFrame.msg"
+    "LossPacket.msg"
+    "Ptp.msg"
+    "Firetime.msg"
   )
 
   generate_messages(
@@ -112,6 +117,9 @@ if($ENV{ROS_VERSION} MATCHES "2")
     rosidl_generate_interfaces(${PROJECT_NAME}
       "msg/msg_ros2/UdpPacket.msg"
       "msg/msg_ros2/UdpFrame.msg"
+      "msg/msg_ros2/Firetime.msg"
+      "msg/msg_ros2/Ptp.msg"
+      "msg/msg_ros2/LossPacket.msg"
       DEPENDENCIES builtin_interfaces std_msgs
     )
     ament_export_dependencies(rosidl_default_runtime)                 
@@ -143,8 +151,15 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk)
 #                node/hesai_ros_driver_node.cpp
 #                src/manager/node_manager.cpp
 #                )
+find_package(Boost REQUIRED COMPONENTS thread)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 
-# find_package(CUDA)
+# if install different cuda version, set the cuda path, like cuda-11.4
+# set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
+# find_package(CUDA REQUIRED)
+# find_package(CUDA )
+
 # if(CUDA_FOUND)
   
 #   message(=============================================================)
@@ -152,14 +167,14 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk)
 #   message(=============================================================)
 
 #   link_directories($ENV{CUDA_PATH}/lib/x64)
-#   set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2;-std=c++17")#根据具体GPU性能更改算力参数
+#   set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2")#根据具体GPU性能更改算力参数
 #   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
 #   list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
 
 #   CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
 #                 node/hesai_ros_driver_node.cu
 #                 src/manager/node_manager.cu
-#                 ./src/driver/hesai_lidar_sdk/libhesai/UdpParserGpu/src/buffer.cu
+#                 ./src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src/buffer.cu
 #                 )
 #   set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
 
@@ -176,22 +191,22 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/driver/hesai_lidar_sdk)
 #     )
 # else(CUDA_FOUND)
 
-message(=============================================================)
-message("-- CUDA Not Found. CUDA Support is turned Off.")
-message(=============================================================)
-add_executable(hesai_ros_driver_node
-              node/hesai_ros_driver_node.cc
-              src/manager/node_manager.cc
-              )
-target_link_libraries(hesai_ros_driver_node                   
-            ${YAML_CPP_LIBRARIES}
-            ${Boost_LIBRARIES}
-            source_lib
-            container_lib
-            ptcClient_lib
-            ptcParser_lib
-            log_lib
-            # libhesai
+  message(=============================================================)
+  message("-- CUDA Not Found. CUDA Support is turned Off.")
+  message(=============================================================)
+  add_executable(hesai_ros_driver_node
+                node/hesai_ros_driver_node.cc
+                src/manager/node_manager.cc
+                )
+  target_link_libraries(hesai_ros_driver_node                   
+              ${YAML_CPP_LIBRARIES}
+              ${Boost_LIBRARIES}
+              source_lib
+              container_lib
+              ptcClient_lib
+              ptcParser_lib
+              log_lib
+              # libhesai
   )            
 
 # endif(CUDA_FOUND)

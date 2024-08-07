@@ -1,0 +1,23 @@
+<launch>
+
+  
+  <arg name="input_rosbag_path" default="/home/tutuna/Downloads/stein_am_rhein_box/bags/2024-07-10-15-52-12_nuc_hesai_0.bag"/>
+  
+  <arg name="use_sim_time" default="true"/>
+  <node pkg="hesai_ros_driver" name="hesai_ros_driver_node" type="hesai_ros_driver_node" output="screen" > <!-- launch-prefix="gdb -ex run args"> -->
+    <param name="config_path" type="string" value= "$(find hesai_ros_driver)/config/packet_replay.yaml"/>
+    <param name="/use_sim_time" value="$(arg use_sim_time)"/>
+  </node>
+  <!-- rviz -->
+  <node pkg="rviz" name="rviz" type="rviz" args="-d '$(find hesai_ros_driver)/rviz/rviz.rviz'" required="true"/>
+
+  <!-- Needs xterm -->
+  <!-- sudo apt install xterm -->
+
+  <node pkg="rosbag" type="play" name="player" output="screen" launch-prefix="xterm -bg lightblue -fg darkslategrey -bd plum -bw 10 -geometry 80x40-50+250 -fn -sony-fixed-medium-r-normal--24-170-100-100-c-120-iso8859-1 -e " args="--clock -r 10 $(arg input_rosbag_path)"/>
+
+  <!-- rosbag -->
+  <!-- <node pkg="rosbag" type="play" name="player" output="screen" launch-prefix="xterm -bg lightblue -fg darkslategrey -bd plum -bw 10 -geometry 80x40-50+250 -e " args="clock -r 10 $(arg input_rosbag_path)"/> -->
+
+</launch>
+
