@@ -44,3 +44,13 @@ V2.0.7
 1. Fix gpu compile problem
 2. Resolve compile warnings, inluding cpu compile and gpu compile
 3. ROS add topics, support angle correction data, ptp data, loss bag count data
+
+################################################################################
+Wednesday September 25th, 2024 11:04:33 CST
+## version
+V2.0.8
+
+## modify
+1. Addition of mechanical lidar photocentre correction parameters: distance_correction_lidar_type
+2. Adding XT lidar point cloud S-stratification correction parameters: lidar_type
+3. Add parameter to filter point cloud or fault message data for a specified port: device_udp_src_port, device_fault_port
