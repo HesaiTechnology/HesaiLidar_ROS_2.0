@@ -40,6 +40,10 @@ public:
         YamlRead<int>(        driver_config, "fov_start",                 driver_param.decoder_param.fov_start, -1);
         YamlRead<int>(        driver_config, "fov_end",                   driver_param.decoder_param.fov_end, -1);
         YamlRead<int>(        driver_config, "source_type",               source_type, 0);
+        YamlRead<std::string>(driver_config, "distance_correction_lidar_type",  driver_param.decoder_param.distance_correction_lidar_type, "");
+        YamlRead<std::string>(driver_config, "lidar_type",                      driver_param.lidar_type, "");
+        YamlRead<uint16_t>(   driver_config, "device_udp_src_port",             driver_param.input_param.device_udp_src_port, 0);
+        YamlRead<uint16_t>(   driver_config, "device_fault_port",               driver_param.input_param.device_fault_port, 0);
         driver_param.input_param.source_type = SourceType(source_type);
         // ROS related
         YamlRead<bool>(       driver_config, "enable_packet_loss_tool",    driver_param.decoder_param.enable_packet_loss_tool, false);
