@@ -4,10 +4,12 @@ Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/Hesai
 
 ## Support Lidar type
 - Pandar
-- AT128
+- AT128/AT128P
 - QT
 - FT120
 - XT16/XT32
+- ET25
+- OT
 
 ### Installation dependencies
 
