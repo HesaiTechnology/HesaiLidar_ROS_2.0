@@ -26,6 +26,9 @@ public:
         YamlRead<std::string>(driver_config, "correction_file_path",    driver_param.input_param.correction_file_path, "");
         YamlRead<int>(        driver_config, "standby_mode",            driver_param.input_param.standby_mode, -1);
         YamlRead<int>(        driver_config, "speed",                   driver_param.input_param.speed, -1);
+        YamlRead<std::string>(driver_config, "rs485_com",               driver_param.input_param.rs485_com, "/dev/ttyUSB0");
+        YamlRead<std::string>(driver_config, "rs232_com",               driver_param.input_param.rs232_com, "/dev/ttyUSB1");
+        YamlRead<std::string>(driver_config, "correction_save_path",    driver_param.input_param.correction_save_path, "");
         // decoder related
         YamlRead<bool>(       driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, false);
         YamlRead<float>(      driver_config, "x",                         driver_param.decoder_param.transform_param.x, 0);
@@ -57,7 +60,8 @@ public:
         YamlRead<std::string>(config["ros"], "ros_send_ptp_topic",         driver_param.input_param.ros_send_ptp_topic, NULL_TOPIC);
         YamlRead<std::string>(config["ros"], "ros_send_correction_topic",  driver_param.input_param.ros_send_correction_topic, NULL_TOPIC);
         YamlRead<std::string>(config["ros"], "ros_send_firetime_topic",    driver_param.input_param.ros_send_firetime_topic, NULL_TOPIC);
-        YamlRead<std::string>(config["ros"], "ros_recv_correction_topic",  driver_param.input_param.ros_recv_correction_topic, NULL_TOPIC);        
+        YamlRead<std::string>(config["ros"], "ros_recv_correction_topic",  driver_param.input_param.ros_recv_correction_topic, NULL_TOPIC);  
+        YamlRead<std::string>(config["ros"], "ros_send_imu_topic",         driver_param.input_param.ros_send_imu_topic, NULL_TOPIC);              
         return true;
     }
 

@@ -8,8 +8,10 @@ Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/Hesai
 - QT
 - FT120
 - XT16/XT32
-- ET25
+- ET25/ET30
 - OT
+- ATX
+- JT16
 
 ### Installation dependencies
 
@@ -72,8 +74,11 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
         pcap_path: "<Your PCAP file path>"                   #The path of pcap file (set during offline playback)
         correction_file_path: "<Your correction file path>"  #LiDAR angle file, required for offline playback of pcap/packet rosbag
         firetimes_path: "<Your firetime file path>"          #The path of firetimes file
-        source_type: 2                                       #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag
+        source_type: 2                                       #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: real-time lidar connection using the serial port
         pcap_play_synchronization: true                      #Pcap play rate synchronize with the host time
+        rs485_com: "<Your serial for receiving point cloud>" #if using JT16, Port to receive the point cloud
+        rs232_com: "<Your serial for sending cmd>"           #if using JT16, Port to send cmd
+        correction_save_path: ""                             #if using JT16, turn on when you need to store angle calibration files(from lidar)
         x: 0                                                 #Calibration parameter
         y: 0                                                 #Calibration parameter
         z: 0                                                 #Calibration parameter

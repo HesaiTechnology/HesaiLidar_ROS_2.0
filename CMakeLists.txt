@@ -181,6 +181,7 @@ if(CUDA_FOUND)
                 source_lib
                 container_lib
                 ptcClient_lib
+                serialClient_lib
                 ptcParser_lib
                 log_lib
                 ${CUDA_LIBS}
@@ -201,6 +202,7 @@ else(CUDA_FOUND)
               source_lib
               container_lib
               ptcClient_lib
+              serialClient_lib
               ptcParser_lib
               log_lib
               # libhesai
@@ -224,6 +226,7 @@ endif(CUDA_FOUND)
   src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/include
   src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src
   src/driver/HesaiLidar_SDK_2.0/libhesai/PtcClient/include
+  src/driver/HesaiLidar_SDK_2.0/libhesai/SerialClient/include
   src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/include
   src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser
   src/driver/HesaiLidar_SDK_2.0/libhesai/Logger/include
