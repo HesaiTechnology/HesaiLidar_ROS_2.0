@@ -9,7 +9,7 @@ lidar:
       correction_file_path: "Your correction file path" #The path of correction file
       firetimes_path: "Your firetime file path"         #The path of firetimes file
       source_type: 1                                 #The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
-      frame_start_azimuth: 200         #Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it
+      frame_start_azimuth: 0         #Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it
       standby_mode: -1                 #The standby mode: [-1] is invalit [0] in operation [1] standby
       speed: -1                        #The speed: [-1] invalit, you must make sure your set has been supported by the lidar you are using
       #lidar configuration using serial communication
