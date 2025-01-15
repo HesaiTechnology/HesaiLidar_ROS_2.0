@@ -29,7 +29,7 @@ lidar:
       fov_start: -1
       fov_end:  -1
       enable_packet_loss_tool: true     # enable the udp packet loss detection tool
-      distance_correction_lidar_flag: false # set to true when optical centre correction needs to be turned on
+      distance_correction_flag: false # set to true when optical centre correction needs to be turned on
       xt_spot_correction: false             # Set to TRUE when XT S point cloud layering correction is required
       device_udp_src_port: 0                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
       device_fault_port: 0                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024

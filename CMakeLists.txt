@@ -138,99 +138,29 @@ find_package(yaml-cpp REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 #Driver core#
+set(DISENABLE_TEST_CC ON CACHE BOOL "DISENABLE_TEST_CC")  
 add_subdirectory(src/driver/HesaiLidar_SDK_2.0)
 
 #========================
 # Build Setup
 #========================
 
-# add_executable(hesai_ros_driver_node
-#                node/hesai_ros_driver_node.cpp
-#                src/manager/node_manager.cpp
-#                )
 find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-# if install different cuda version, set the cuda path, like cuda-11.4
-# set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
-# find_package(CUDA REQUIRED)
-find_package(CUDA )
+add_executable(hesai_ros_driver_node
+              node/hesai_ros_driver_node.cc
+              src/manager/node_manager.cc
+              )
+target_link_libraries(hesai_ros_driver_node                   
+            ${YAML_CPP_LIBRARIES}
+            ${Boost_LIBRARIES}
+            lidar_lib
+)            
 
-if(CUDA_FOUND)
-  
-  message(=============================================================)
-  message("-- CUDA Found. CUDA Support is turned On.")
-  message(=============================================================)
-
-  link_directories($ENV{CUDA_PATH}/lib/x64)
-  set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2")#根据具体GPU性能更改算力参数
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
-  list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
-
-  CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
-                node/hesai_ros_driver_node.cu
-                src/manager/node_manager.cu
-                ./src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src/buffer.cu
-                )
-  set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
-
-  target_link_libraries(hesai_ros_driver_node                   
-                ${YAML_CPP_LIBRARIES}
-                ${Boost_LIBRARIES}
-                source_lib
-                container_lib
-                ptcClient_lib
-                serialClient_lib
-                ptcParser_lib
-                log_lib
-                ${CUDA_LIBS}
-                # libhesai
-    )
-else(CUDA_FOUND)
-
-  message(=============================================================)
-  message("-- CUDA Not Found. CUDA Support is turned Off.")
-  message(=============================================================)
-  add_executable(hesai_ros_driver_node
-                node/hesai_ros_driver_node.cc
-                src/manager/node_manager.cc
-                )
-  target_link_libraries(hesai_ros_driver_node                   
-              ${YAML_CPP_LIBRARIES}
-              ${Boost_LIBRARIES}
-              source_lib
-              container_lib
-              ptcClient_lib
-              serialClient_lib
-              ptcParser_lib
-              log_lib
-              # libhesai
-  )            
-
-endif(CUDA_FOUND)
-
-
-  target_include_directories(hesai_ros_driver_node PRIVATE
+target_include_directories(hesai_ros_driver_node PRIVATE
   src/driver/HesaiLidar_SDK_2.0/
-  src/driver/HesaiLidar_SDK_2.0/libhesai
-  src/driver/HesaiLidar_SDK_2.0/libhesai/Lidar
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParser
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParser/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParser/src
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpProtocol
-  src/driver/HesaiLidar_SDK_2.0/libhesai/Source/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/Container/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/Container/src
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src
-  src/driver/HesaiLidar_SDK_2.0/libhesai/PtcClient/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/SerialClient/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser
-  src/driver/HesaiLidar_SDK_2.0/libhesai/Logger/include
-  src/driver/HesaiLidar_SDK_2.0/libhesai/include
   src/driver/HesaiLidar_SDK_2.0/driver
   src/manager
   src/msg/ros_msg
