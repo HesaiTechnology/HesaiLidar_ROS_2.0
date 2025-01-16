@@ -13,6 +13,23 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
 )
 
+# if install different cuda version, set the cuda path, like cuda-11.4
+# set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
+find_package(CUDA )
+if(${CUDA_FOUND})
+  	project(CommonModules LANGUAGES CXX CUDA)
+	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
+	set(CUDA_SEPARABLE_COMPILATION ON)
+	include_directories(${CUDA_INCLUDE_DIRS})
+	set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+	set(CUDA_NVCC_FLAGS -arch=sm_61;-O3;-G;-g;-std=c++14)#根据具体GPU性能更改算力参数
+	link_directories($ENV{CUDA_PATH}/lib/x64)
+
+  	add_definitions(-DUSE_CUDA)
+else(${CUDA_FOUND})
+	MESSAGE(STATUS "cuda not found!")
+endif(${CUDA_FOUND})
+
 #=======================================
 # Custom Point Type (XYZI, XYZIRT)
 #=======================================
@@ -149,19 +166,24 @@ find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-add_executable(hesai_ros_driver_node
-              node/hesai_ros_driver_node.cc
-              src/manager/node_manager.cc
-              )
+if(${CUDA_FOUND})
+  add_executable(hesai_ros_driver_node
+    node/hesai_ros_driver_node.cu
+    src/manager/node_manager.cc
+    )
+else()
+  add_executable(hesai_ros_driver_node
+    node/hesai_ros_driver_node.cc
+    src/manager/node_manager.cc
+    )
+endif()
 target_link_libraries(hesai_ros_driver_node                   
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
-            lidar_lib
-)            
+            hesai_sdk_lib
+)              
 
 target_include_directories(hesai_ros_driver_node PRIVATE
-  src/driver/HesaiLidar_SDK_2.0/
-  src/driver/HesaiLidar_SDK_2.0/driver
   src/manager
   src/msg/ros_msg
   src/msg/rs_msg

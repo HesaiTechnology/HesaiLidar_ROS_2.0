@@ -1,10 +1,6 @@
 #pragma once
 #include "utility/yaml_reader.hpp"
-#ifdef __CUDACC__
-  #include "hesai_lidar_sdk_gpu.cuh"
-#else
-  #include "hesai_lidar_sdk.hpp"
-#endif
+#include "hesai_lidar_sdk.hpp"
 class DriveYamlParam
 {
 public:
@@ -17,6 +13,7 @@ public:
         int source_type;
 
         // input related
+        YamlRead<bool>(       driver_config, "use_gpu",                 driver_param.use_gpu, false);
         YamlRead<uint16_t>(   driver_config, "udp_port",                driver_param.input_param.udp_port, 2368);
         YamlRead<uint16_t>(   driver_config, "ptc_port",                driver_param.input_param.ptc_port, 9347);
         YamlRead<std::string>(driver_config, "host_ip_address",         driver_param.input_param.host_ip_address, "192.168.1.100");
