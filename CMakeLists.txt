@@ -12,6 +12,7 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
 )
+# add_definitions(-DJT128_256)
 
 #=======================================
 # Custom Point Type (XYZI, XYZIRT)
