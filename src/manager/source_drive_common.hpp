@@ -26,6 +26,9 @@ public:
         YamlRead<std::string>(driver_config, "correction_file_path",    driver_param.input_param.correction_file_path, "");
         YamlRead<int>(        driver_config, "standby_mode",            driver_param.input_param.standby_mode, -1);
         YamlRead<int>(        driver_config, "speed",                   driver_param.input_param.speed, -1);
+        YamlRead<std::string>(driver_config, "rs485_com",               driver_param.input_param.rs485_com, "/dev/ttyUSB0");
+        YamlRead<std::string>(driver_config, "rs232_com",               driver_param.input_param.rs232_com, "/dev/ttyUSB1");
+        YamlRead<std::string>(driver_config, "correction_save_path",    driver_param.input_param.correction_save_path, "");
         // decoder related
         YamlRead<bool>(       driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, false);
         YamlRead<float>(      driver_config, "x",                         driver_param.decoder_param.transform_param.x, 0);
@@ -40,7 +43,8 @@ public:
         YamlRead<int>(        driver_config, "fov_start",                 driver_param.decoder_param.fov_start, -1);
         YamlRead<int>(        driver_config, "fov_end",                   driver_param.decoder_param.fov_end, -1);
         YamlRead<int>(        driver_config, "source_type",               source_type, 0);
-        YamlRead<std::string>(driver_config, "distance_correction_lidar_type",  driver_param.decoder_param.distance_correction_lidar_type, "");
+        YamlRead<bool>(       driver_config, "distance_correction_lidar_flag",  driver_param.decoder_param.distance_correction_lidar_flag, false);
+        YamlRead<bool>(       driver_config, "xt_spot_correction",              driver_param.decoder_param.xt_spot_correction, false);
         YamlRead<std::string>(driver_config, "lidar_type",                      driver_param.lidar_type, "");
         YamlRead<uint16_t>(   driver_config, "device_udp_src_port",             driver_param.input_param.device_udp_src_port, 0);
         YamlRead<uint16_t>(   driver_config, "device_fault_port",               driver_param.input_param.device_fault_port, 0);
@@ -57,7 +61,8 @@ public:
         YamlRead<std::string>(config["ros"], "ros_send_ptp_topic",         driver_param.input_param.ros_send_ptp_topic, NULL_TOPIC);
         YamlRead<std::string>(config["ros"], "ros_send_correction_topic",  driver_param.input_param.ros_send_correction_topic, NULL_TOPIC);
         YamlRead<std::string>(config["ros"], "ros_send_firetime_topic",    driver_param.input_param.ros_send_firetime_topic, NULL_TOPIC);
-        YamlRead<std::string>(config["ros"], "ros_recv_correction_topic",  driver_param.input_param.ros_recv_correction_topic, NULL_TOPIC);        
+        YamlRead<std::string>(config["ros"], "ros_recv_correction_topic",  driver_param.input_param.ros_recv_correction_topic, NULL_TOPIC);  
+        YamlRead<std::string>(config["ros"], "ros_send_imu_topic",         driver_param.input_param.ros_send_imu_topic, NULL_TOPIC);              
         return true;
     }
 

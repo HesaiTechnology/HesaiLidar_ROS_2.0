@@ -7,11 +7,12 @@ project(hesai_ros_driver)
 #=======================================
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_TINY  8)
+set(VERSION_TINY  9)
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
 )
+# add_definitions(-DJT128_256)
 
 #=======================================
 # Custom Point Type (XYZI, XYZIRT)
@@ -181,6 +182,7 @@ if(CUDA_FOUND)
                 source_lib
                 container_lib
                 ptcClient_lib
+                serialClient_lib
                 ptcParser_lib
                 log_lib
                 ${CUDA_LIBS}
@@ -201,6 +203,7 @@ else(CUDA_FOUND)
               source_lib
               container_lib
               ptcClient_lib
+              serialClient_lib
               ptcParser_lib
               log_lib
               # libhesai
@@ -224,6 +227,7 @@ endif(CUDA_FOUND)
   src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/include
   src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src
   src/driver/HesaiLidar_SDK_2.0/libhesai/PtcClient/include
+  src/driver/HesaiLidar_SDK_2.0/libhesai/SerialClient/include
   src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/include
   src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser
   src/driver/HesaiLidar_SDK_2.0/libhesai/Logger/include

@@ -54,3 +54,11 @@ V2.0.8
 1. Addition of mechanical lidar photocentre correction parameters: distance_correction_lidar_type
 2. Adding XT lidar point cloud S-stratification correction parameters: lidar_type
 3. Add parameter to filter point cloud or fault message data for a specified port: device_udp_src_port, device_fault_port
+
+################################################################################
+******
+## version
+V2.0.9
+
+## modify
+1. Distance Correction and XT S Point Cloud Layering Correction No need to specify radar model, via flag position switch
