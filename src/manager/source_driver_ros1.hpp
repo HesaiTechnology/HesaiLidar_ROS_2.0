@@ -161,10 +161,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
     driver_param.decoder_param.enable_udp_thread = false;
     subscription_spin_thread_ = new boost::thread(boost::bind(&SourceDriver::SpinRos1,this));
   }
-
-  if (driver_param.input_param.source_type == DATA_FROM_SERIAL) {
-    imu_pub_ = nh_->advertise<sensor_msgs::Imu>(driver_param.input_param.ros_send_imu_topic, 10);
-  }
+  
   #ifdef __CUDACC__
     driver_ptr_.reset(new HesaiLidarSdkGpu<LidarPointXYZIRT>());
     driver_param.decoder_param.enable_parser_thread = false;
@@ -173,6 +170,8 @@ inline void SourceDriver::Init(const YAML::Node& config)
     driver_param.decoder_param.enable_parser_thread = true;
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
+  imu_pub_ = nh_->advertise<sensor_msgs::Imu>(driver_param.input_param.ros_send_imu_topic, 10);
+  driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
   if(driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
   }
@@ -187,9 +186,6 @@ inline void SourceDriver::Init(const YAML::Node& config)
       driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPTP, this, std::placeholders::_1, std::placeholders::_2));
     }
   } 
-  if (driver_param.input_param.source_type == DATA_FROM_SERIAL) {
-    driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
-  }
   if (!driver_ptr_->Init(driver_param))
   {
     std::cout << "Driver Initialize Error...." << std::endl;
