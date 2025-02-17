@@ -30,6 +30,7 @@ lidar:
       device_udp_src_port: 0               # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
       device_fault_port: 0                 # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
     ros:
+      ros_node_name: hesai_ros_driver_node          #Node name in ros. Allows for different naming when multiple sensors are in use
       ros_frame_id: hesai_lidar                     #Frame id of packet message and point cloud message
       # ros_recv_correction_topic: /lidar_corrections #Topic used to receive corrections file from rosbag
       ros_recv_packet_topic: /lidar_packets         #Topic used to receive lidar packets from rosbag
