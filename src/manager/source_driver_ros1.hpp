@@ -290,7 +290,12 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   }
   printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
   // ros_msg.header.seq = s;
-  ros_msg.header.stamp = ros::Time().fromSec(frame.points[0].timestamp);
+  int64_t sec = static_cast<int64_t>(frame.points[0].timestamp);  
+  if (sec <= 2147483647) {
+    ros_msg.header.stamp = ros::Time().fromSec(frame.points[0].timestamp);
+  } else {
+    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame.points[0].timestamp);
+  }
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;
 }
@@ -304,7 +309,12 @@ inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_m
     memcpy(&rawpacket.data[0], &ros_msg[i].buffer[0], ros_msg[i].packet_len);
     rs_msg.packets.push_back(rawpacket);
   }
-  rs_msg.header.stamp = ros::Time().fromSec(timestamp);
+  int64_t sec = static_cast<int64_t>(timestamp);  
+  if (sec <= 2147483647) {
+    rs_msg.header.stamp = ros::Time().fromSec(timestamp);
+  } else {
+    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", timestamp);
+  }
   rs_msg.header.frame_id = frame_id_;
   return rs_msg;
 }
@@ -342,7 +352,12 @@ inline hesai_ros_driver::Firetime SourceDriver::ToRosMsg(const double *firetime_
 inline sensor_msgs::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_config_)
 {
   sensor_msgs::Imu ros_msg;
-  ros_msg.header.stamp = ros::Time().fromSec(imu_config_.timestamp);
+  int64_t sec = static_cast<int64_t>(imu_config_.timestamp);  
+  if (sec <= 2147483647) {
+    ros_msg.header.stamp = ros::Time().fromSec(imu_config_.timestamp);
+  } else {
+    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
+  }
   ros_msg.header.frame_id = frame_id_;
   ros_msg.linear_acceleration.x = imu_config_.imu_accel_x;
   ros_msg.linear_acceleration.y = imu_config_.imu_accel_y;
