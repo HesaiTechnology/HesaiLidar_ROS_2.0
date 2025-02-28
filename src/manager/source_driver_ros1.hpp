@@ -291,7 +291,7 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
   // ros_msg.header.seq = s;
   int64_t sec = static_cast<int64_t>(frame.points[0].timestamp);  
-  if (sec <= 2147483647) {
+  if (sec <= std::numeric_limits<int32_t>::max()) {
     ros_msg.header.stamp = ros::Time().fromSec(frame.points[0].timestamp);
   } else {
     printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame.points[0].timestamp);
@@ -310,7 +310,7 @@ inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_m
     rs_msg.packets.push_back(rawpacket);
   }
   int64_t sec = static_cast<int64_t>(timestamp);  
-  if (sec <= 2147483647) {
+  if (sec <= std::numeric_limits<int32_t>::max()) {
     rs_msg.header.stamp = ros::Time().fromSec(timestamp);
   } else {
     printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", timestamp);
@@ -353,7 +353,7 @@ inline sensor_msgs::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_config_)
 {
   sensor_msgs::Imu ros_msg;
   int64_t sec = static_cast<int64_t>(imu_config_.timestamp);  
-  if (sec <= 2147483647) {
+  if (sec <= std::numeric_limits<int32_t>::max()) {
     ros_msg.header.stamp = ros::Time().fromSec(imu_config_.timestamp);
   } else {
     printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
