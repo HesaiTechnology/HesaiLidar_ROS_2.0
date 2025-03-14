@@ -25,7 +25,8 @@ if(${CUDA_FOUND})
 	set(CUDA_NVCC_FLAGS -arch=sm_61;-O3;-G;-g;)#根据具体GPU性能更改算力参数
 	link_directories($ENV{CUDA_PATH}/lib/x64)
 
-  	add_definitions(-DUSE_CUDA)
+  add_definitions(-DUSE_CUDA)
+  set(FIND_CUDA ON CACHE BOOL "Use Cuda")
 else(${CUDA_FOUND})
 	MESSAGE(STATUS "cuda not found!")
 endif(${CUDA_FOUND})

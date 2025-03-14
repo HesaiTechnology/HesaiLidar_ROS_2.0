@@ -28,6 +28,7 @@ public:
         YamlRead<std::string>(driver_config, "correction_save_path",    driver_param.input_param.correction_save_path, "");
         // decoder related
         YamlRead<bool>(       driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, false);
+        YamlRead<bool>(       driver_config, "transform_flag",            driver_param.decoder_param.transform_param.use_flag, false);
         YamlRead<float>(      driver_config, "x",                         driver_param.decoder_param.transform_param.x, 0);
         YamlRead<float>(      driver_config, "y",                         driver_param.decoder_param.transform_param.y, 0);
         YamlRead<float>(      driver_config, "z",                         driver_param.decoder_param.transform_param.z, 0);
@@ -49,6 +50,7 @@ public:
         YamlRead<bool>(       driver_config, "enable_packet_loss_tool",    driver_param.decoder_param.enable_packet_loss_tool, false);
         YamlRead<bool>(       config["ros"], "send_packet_ros",            driver_param.input_param.send_packet_ros, false);
         YamlRead<bool>(       config["ros"], "send_point_cloud_ros",       driver_param.input_param.send_point_cloud_ros, false);
+        YamlRead<bool>(       config["ros"], "send_imu_ros",               driver_param.input_param.send_imu_ros, false);
         YamlRead<std::string>(config["ros"], "ros_frame_id",               driver_param.input_param.frame_id, "hesai_lidar");
         YamlRead<std::string>(config["ros"], "ros_send_packet_topic",      driver_param.input_param.ros_send_packet_topic, "hesai_packets");
         YamlRead<std::string>(config["ros"], "ros_send_point_cloud_topic", driver_param.input_param.ros_send_point_topic, "hesai_points");
