@@ -85,6 +85,15 @@ int main(int argc, char** argv)
   {
     config_path = path;
   }
+#elif ROS2_FOUND
+  // workaround to get config_path from ros parameter
+  auto node = rclcpp::Node::make_shared("hesai_ros_driver_node");
+  std::string path = node->declare_parameter<std::string>("config_path", "");
+  node.reset();
+  if (!path.empty())
+  {
+    config_path = path;
+  }
 #endif
 
   YAML::Node config;
