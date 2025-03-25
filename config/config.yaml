@@ -17,6 +17,7 @@ lidar:
       rs485_com: "Your serial port name for receiving point cloud"  # if using JT16, Port to receive the point cloud
       rs232_com: "Your serial port name for sending cmd"            # if using JT16, Port to send cmd
       correction_save_path: ""         # if using JT16, turn on when you need to store angle calibration files(from lidar)
+      pcap_play_in_loop: false
       #transform param
       transform_flag: false
       x: 0

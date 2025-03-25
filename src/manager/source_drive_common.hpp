@@ -28,6 +28,7 @@ public:
         YamlRead<std::string>(driver_config, "correction_save_path",    driver_param.input_param.correction_save_path, "");
         // decoder related
         YamlRead<bool>(       driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, false);
+        YamlRead<bool>(       driver_config, "pcap_play_in_loop",         driver_param.decoder_param.pcap_play_in_loop, false);
         YamlRead<bool>(       driver_config, "transform_flag",            driver_param.decoder_param.transform_param.use_flag, false);
         YamlRead<float>(      driver_config, "x",                         driver_param.decoder_param.transform_param.x, 0);
         YamlRead<float>(      driver_config, "y",                         driver_param.decoder_param.transform_param.y, 0);
