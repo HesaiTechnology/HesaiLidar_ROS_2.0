@@ -26,6 +26,7 @@ public:
         YamlRead<std::string>(driver_config, "rs485_com",               driver_param.input_param.rs485_com, "/dev/ttyUSB0");
         YamlRead<std::string>(driver_config, "rs232_com",               driver_param.input_param.rs232_com, "/dev/ttyUSB1");
         YamlRead<std::string>(driver_config, "correction_save_path",    driver_param.input_param.correction_save_path, "");
+        YamlRead<bool>(       driver_config, "use_ptc_connected",       driver_param.input_param.use_ptc_connected, true);
         // decoder related
         YamlRead<bool>(       driver_config, "pcap_play_synchronization", driver_param.decoder_param.pcap_play_synchronization, false);
         YamlRead<bool>(       driver_config, "pcap_play_in_loop",         driver_param.decoder_param.pcap_play_in_loop, false);

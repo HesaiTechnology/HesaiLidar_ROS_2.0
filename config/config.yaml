@@ -2,9 +2,10 @@ lidar:
   - driver:
       use_gpu: false
       pcap_play_synchronization: true  # pcap play rate synchronize with the host time
-      udp_port: 2368                   #UDP port of lidar
-      ptc_port: 9347                   #PTC port of lidar
-      device_ip_address: 192.168.1.201 #host_ip_address
+      udp_port: 2368                   # UDP port of lidar
+      use_ptc_connected: true          # Set to false when ptc connection is not used
+      ptc_port: 9347                   # PTC port of lidar
+      device_ip_address: 192.168.1.201 # host_ip_address
       group_address: 255.255.255.255
       pcap_path: "Your pcap file"      #The path of pcap file
       correction_file_path: "Your correction file path" #The path of correction file
