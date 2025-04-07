@@ -70,7 +70,7 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
         - driver:
             use_gpu: false                                        # Whether to use GPU
             pcap_play_synchronization: true                       # pcap play rate synchronize with the host time
-            udp_port: 2368                                        # UDP port of lidar
+            udp_port: 2368                                        # UDP destination port
             ptc_port: 9347                                        # PTC port of lidar
             device_ip_address: 192.168.1.201                      # host_ip_address
             group_address: 255.255.255.255
