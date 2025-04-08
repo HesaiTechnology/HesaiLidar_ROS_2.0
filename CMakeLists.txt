@@ -268,6 +268,15 @@ if($ENV{ROS_VERSION} MATCHES "2")
   install(TARGETS
     hesai_ros_driver_node
     DESTINATION lib/${PROJECT_NAME})
+  install(TARGETS
+    source_lib
+    container_lib
+    ptcClient_lib
+    ptcParser_lib
+    serialClient_lib
+    log_lib
+    platutils_lib
+    DESTINATION lib)
 
   install(DIRECTORY
     launch
