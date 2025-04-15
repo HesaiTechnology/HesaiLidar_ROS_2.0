@@ -38,6 +38,10 @@ public:
             YamlRead<bool>(       driver_config["pcap_type"], "pcap_play_in_loop",            driver_param.decoder_param.pcap_play_in_loop, false);
 
         }
+        else if (source_type == 3) {
+            YamlRead<std::string>(driver_config["rosbag_type"], "correction_file_path",       driver_param.input_param.correction_file_path, "");
+            YamlRead<std::string>(driver_config["rosbag_type"], "firetimes_path",             driver_param.input_param.firetimes_path, "");
+        }
         else if (source_type == 4) {
             YamlRead<std::string>(driver_config["serial_type"], "rs485_com",                  driver_param.input_param.rs485_com, "/dev/ttyUSB0");
             YamlRead<std::string>(driver_config["serial_type"], "rs232_com",                  driver_param.input_param.rs232_com, "/dev/ttyUSB1");

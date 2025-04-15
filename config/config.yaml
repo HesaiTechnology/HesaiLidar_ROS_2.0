@@ -27,7 +27,11 @@ lidar:
 
         pcap_play_synchronization: true                     # pcap play rate synchronize with the host time
         pcap_play_in_loop: false
-     
+      
+      rosbag_type:
+        correction_file_path: "Your correction file path"   # The path of correction file
+        firetimes_path: "Your firetime file path"           # The path of firetimes file
+
       serial_type:
         rs485_com: "Your serial port name for receiving point cloud"  # if using JT16, Port to receive the point cloud
         rs232_com: "Your serial port name for sending cmd"            # if using JT16, Port to send cmd
@@ -67,6 +71,6 @@ lidar:
       # ros_send_firetime_topic: /lidar_firetime
       # ros_send_ptp_topic: /lidar_ptp
       # Topic used to send PTP lock status, offset through ROS
-      send_packet_ros: true                         #true: Send packets through ROS 
+      send_packet_ros: false                        #true: Send packets through ROS 
       send_point_cloud_ros: true                    #true: Send point cloud through ROS    
       send_imu_ros: true                            #true: Send imu through ROS    

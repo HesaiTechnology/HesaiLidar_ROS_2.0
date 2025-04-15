@@ -147,7 +147,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
     } 
   }
 
-  if (driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET) {
+  if (driver_param.input_param.send_packet_ros) {
     pkt_pub_ = nh_->advertise<hesai_ros_driver::UdpFrame>(driver_param.input_param.ros_send_packet_topic, 10);
   }
 
@@ -169,7 +169,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
     this->SendPointCloud(frame);  
   }); 
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
-  if(driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
+  if (driver_param.input_param.send_packet_ros) {
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
   }
   if (driver_param.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {

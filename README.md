@@ -107,7 +107,7 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
             ros_send_packet_topic: /lidar_packets                # Topic used to send lidar packets through ROS
             ros_send_point_cloud_topic: /lidar_points            # Topic used to send point cloud through ROS
             ros_send_imu_topic: /lidar_imu                       # Topic used to send lidar imu message
-            send_packet_ros: true                                # true: Send packets through ROS 
+            send_packet_ros: false                               # true: Send packets through ROS 
             send_point_cloud_ros: true                           # true: Send point cloud through ROS 
             send_imu_ros: true                                   # true: Send imu through ROS   
 
@@ -161,7 +161,7 @@ According to the configuration of a single lidar, multiple drivers can be create
             ros_recv_packet_topic: /lidar_packets      
             ros_send_packet_topic: /lidar_packets      
             ros_send_point_cloud_topic: /lidar_points  
-            send_packet_ros: true                     
+            send_packet_ros: false                     
             send_point_cloud_ros: true          
             send_imu_ros: true  
         - driver:               

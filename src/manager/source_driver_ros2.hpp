@@ -147,17 +147,17 @@ inline void SourceDriver::Init(const YAML::Node& config)
     } 
   }
 
-  if (driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET) {
+  if (driver_param.input_param.send_packet_ros) {
     pkt_pub_ = node_ptr_->create_publisher<hesai_ros_driver::msg::UdpFrame>(driver_param.input_param.ros_send_packet_topic, 10);
   }
 
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
     pkt_sub_ = node_ptr_->create_subscription<hesai_ros_driver::msg::UdpFrame>(driver_param.input_param.ros_recv_packet_topic, 10, 
-    std::bind(&SourceDriver::RecievePacket, this, std::placeholders::_1));
-  if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {    
-    crt_sub_ = node_ptr_->create_subscription<std_msgs::msg::UInt8MultiArray>(driver_param.input_param.ros_recv_correction_topic, 10, 
-    std::bind(&SourceDriver::RecieveCorrection, this, std::placeholders::_1));
-  }
+                              std::bind(&SourceDriver::RecievePacket, this, std::placeholders::_1));
+    if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {    
+      crt_sub_ = node_ptr_->create_subscription<std_msgs::msg::UInt8MultiArray>(driver_param.input_param.ros_recv_correction_topic, 10, 
+                              std::bind(&SourceDriver::RecieveCorrection, this, std::placeholders::_1));
+    }
     driver_param.decoder_param.enable_udp_thread = false;
     subscription_spin_thread_ = new boost::thread(boost::bind(&SourceDriver::SpinRos2,this));
   }
@@ -168,7 +168,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
     this->SendPointCloud(frame);  
   });  
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
-  if(driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
+  if (driver_param.input_param.send_packet_ros) {
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
   }
   if (driver_param.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
