@@ -29,6 +29,12 @@ public:
             YamlRead<uint16_t>(   driver_config["lidar_udp_type"], "fault_message_port",      driver_param.input_param.fault_message_port, 0);
             YamlRead<int>(        driver_config["lidar_udp_type"], "standby_mode",            driver_param.input_param.standby_mode, -1);
             YamlRead<int>(        driver_config["lidar_udp_type"], "speed",                   driver_param.input_param.speed, -1);
+            int ptc_mode;
+            YamlRead<int>(        driver_config["lidar_udp_type"], "ptc_mode",                ptc_mode, 0);
+            driver_param.input_param.ptc_mode = PtcMode(ptc_mode);
+            YamlRead<std::string>(driver_config["lidar_udp_type"], "certFile",                driver_param.input_param.certFile, "");
+            YamlRead<std::string>(driver_config["lidar_udp_type"], "privateKeyFile",          driver_param.input_param.privateKeyFile, "");
+            YamlRead<std::string>(driver_config["lidar_udp_type"], "caFile",                  driver_param.input_param.caFile, "");
         }
         else if (source_type == 2) {    
             YamlRead<std::string>(driver_config["pcap_type"], "pcap_path",                    driver_param.input_param.pcap_path, "");

@@ -19,6 +19,11 @@ lidar:
 
         standby_mode: -1                              # The standby mode: [-1] is invalit [0] in operation [1] standby
         speed: -1                                     # The speed: [-1] invalit, you must make sure your set has been supported by the lidar you are using
+        ptc_mode: 0                                   # The ptc mode: [0] tcp [1] tcp_ssl
+        # tcp_ssl use
+        certFile: ""                                  # Represents the path of the user's certificate
+        privateKeyFile: ""                            # Represents the path of the user's private key 
+        caFile: ""                                    # Represents the path of the CA certificate 
 
       pcap_type:
         pcap_path: "Your pcap file"                         # The path of pcap file

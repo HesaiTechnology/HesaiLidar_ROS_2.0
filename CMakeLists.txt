@@ -13,9 +13,9 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
 )
 
-# if install different cuda version, set the cuda path, like cuda-11.4
-# set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
-find_package(CUDA )
+# set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
+
+# find_package(CUDA )
 if(${CUDA_FOUND})
   	project(CommonModules LANGUAGES CXX CUDA)
 	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
