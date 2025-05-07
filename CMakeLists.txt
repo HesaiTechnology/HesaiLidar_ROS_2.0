@@ -14,8 +14,11 @@ configure_file(
 )
 
 set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
+# set(FIND_CUDA ON CACHE BOOL "Find CUDA")
 
-# find_package(CUDA )
+if(FIND_CUDA)
+    find_package(CUDA )
+endif()
 if(${CUDA_FOUND})
   	project(CommonModules LANGUAGES CXX CUDA)
 	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
