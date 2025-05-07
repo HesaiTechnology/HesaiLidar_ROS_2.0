@@ -13,7 +13,7 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
 )
 
-# set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
+set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
 
 # find_package(CUDA )
 if(${CUDA_FOUND})
