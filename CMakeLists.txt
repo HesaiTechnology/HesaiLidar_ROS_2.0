@@ -158,8 +158,16 @@ link_directories(${Boost_LIBRARY_DIRS})
 # find_package(CUDA REQUIRED)
 find_package(CUDA )
 
+set(LIB_TARGETS source_lib
+    container_lib
+    ptcClient_lib
+    ptcParser_lib
+    serialClient_lib
+    log_lib
+    platutils_lib)
+
 if(CUDA_FOUND)
-  
+
   message(=============================================================)
   message("-- CUDA Found. CUDA Support is turned On.")
   message(=============================================================)
@@ -176,15 +184,10 @@ if(CUDA_FOUND)
                 )
   set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
 
-  target_link_libraries(hesai_ros_driver_node                   
+  target_link_libraries(hesai_ros_driver_node
                 ${YAML_CPP_LIBRARIES}
                 ${Boost_LIBRARIES}
-                source_lib
-                container_lib
-                ptcClient_lib
-                serialClient_lib
-                ptcParser_lib
-                log_lib
+                ${LIB_TARGETS}
                 ${CUDA_LIBS}
                 # libhesai
     )
@@ -197,17 +200,12 @@ else(CUDA_FOUND)
                 node/hesai_ros_driver_node.cc
                 src/manager/node_manager.cc
                 )
-  target_link_libraries(hesai_ros_driver_node                   
+  target_link_libraries(hesai_ros_driver_node
               ${YAML_CPP_LIBRARIES}
               ${Boost_LIBRARIES}
-              source_lib
-              container_lib
-              ptcClient_lib
-              serialClient_lib
-              ptcParser_lib
-              log_lib
+              ${LIB_TARGETS}
               # libhesai
-  )            
+  )
 
 endif(CUDA_FOUND)
 
@@ -238,15 +236,20 @@ endif(CUDA_FOUND)
   src/msg/rs_msg
   src/utility
   ${CMAKE_CURRENT_BINARY_DIR}
-)  
+)
 
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
   target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
-  install(TARGETS hesai_ros_driver_node
+  install(TARGETS hesai_ros_driver_node ${LIB_TARGETS}
           RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
           LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
           ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  install(DIRECTORY
+    launch
+    rviz
+    config
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 endif($ENV{ROS_VERSION} MATCHES "1")
 
 
@@ -269,23 +272,14 @@ if($ENV{ROS_VERSION} MATCHES "2")
     hesai_ros_driver_node
     DESTINATION lib/${PROJECT_NAME})
   install(TARGETS
-    source_lib
-    container_lib
-    ptcClient_lib
-    ptcParser_lib
-    serialClient_lib
-    log_lib
-    platutils_lib
-    DESTINATION lib)
+   ${LIB_TARGETS}
+   DESTINATION lib)
 
   install(DIRECTORY
     launch
     rviz
     DESTINATION share/${PROJECT_NAME})
-    
 
   ament_package()
 
 endif($ENV{ROS_VERSION} MATCHES "2")
-
-
