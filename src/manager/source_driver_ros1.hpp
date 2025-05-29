@@ -100,8 +100,10 @@ protected:
   hesai_ros_driver::Firetime ToRosMsg(const double *firetime_correction_);
   // Convert imu, imu into ROS message
   sensor_msgs::Imu ToRosMsg(const LidarImuData& firetime_correction_);
-  // Previous IMU message
-  LidarImuData previous_imu_msg_;
+  // IMU publish rate
+  ros::Duration imu_duration_rate_;
+  ros::Time last_imu_publish_time_;
+  float imu_publish_rate_;
   // publish point
   std::shared_ptr<ros::NodeHandle> nh_;
   ros::Publisher pub_;
@@ -178,6 +180,16 @@ inline void SourceDriver::Init(const YAML::Node& config)
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
   imu_pub_ = nh_->advertise<sensor_msgs::Imu>(driver_param.input_param.ros_send_imu_topic, 10);
+  imu_publish_rate_ = driver_param.input_param.ros_imu_publish_rate;
+  if ((imu_publish_rate_ == 0.0f) || (imu_publish_rate_ < 0.0f && imu_publish_rate_ != -1.0f))
+  {
+    std::cout << "IMU publish rate should be greater than zero, switching to no throttle mode" << std::endl;
+    imu_publish_rate_ = -1.0F;  // No throttle mode
+  }
+  else
+  {
+    imu_duration_rate_ = ros::Duration(1.0 / imu_publish_rate_);
+  }
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
   if(driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
@@ -247,13 +259,19 @@ inline void SourceDriver::SendFiretime(const double *firetime_correction_)
 
 inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 {
-  if (msg != previous_imu_msg_)
+  if (imu_publish_rate_ == -1.0F)
+  {
+    // No throttle mode, publish every IMU message
+    imu_pub_.publish(ToRosMsg(msg));
+    return;
+  }
+  const ros::Time now = ros::Time::now();
+  if ((now - last_imu_publish_time_) >= imu_duration_rate_)
   {
     imu_pub_.publish(ToRosMsg(msg));
-    previous_imu_msg_ = msg;
+    last_imu_publish_time_ = now;
   }
 }
-
 inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id)
 {
   sensor_msgs::PointCloud2 ros_msg;

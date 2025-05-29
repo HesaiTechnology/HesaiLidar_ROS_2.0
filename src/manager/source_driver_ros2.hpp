@@ -106,8 +106,11 @@ protected:
   hesai_ros_driver::msg::UdpFrame ToRosMsg(const UdpFrame_t& ros_msg, double timestamp);
   // Convert imu, imu into ROS message
   sensor_msgs::msg::Imu ToRosMsg(const LidarImuData& firetime_correction_);
-  // Previous IMU message
-  LidarImuData previous_imu_msg_;
+
+  // IMU publish rate
+  rclcpp::Duration imu_duration_rate_;
+  rclcpp::Time last_imu_publish_time_;
+  float imu_publish_rate_;
 
   std::string frame_id_;
 
@@ -180,6 +183,16 @@ inline void SourceDriver::Init(const YAML::Node& config)
   #endif
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPointCloud, this, std::placeholders::_1));
   imu_pub_ = node_ptr_->create_publisher<sensor_msgs::msg::Imu>(driver_param.input_param.ros_send_imu_topic, 10);
+  imu_publish_rate_ = driver_param.input_param.ros_imu_publish_rate;
+  if ((imu_publish_rate_ == 0.0f) || (imu_publish_rate_ < 0.0f && imu_publish_rate_ != -1.0f))
+  {
+    std::cout << "IMU publish rate should be greater than zero, switching to no throttle mode" << std::endl;
+    imu_publish_rate_ = -1.0F;  // No throttle mode
+  }
+  else
+  {
+    imu_duration_rate_ = rclcpp::Duration::from_seconds(1.0 / imu_publish_rate_);
+  }
   driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
   if(driver_param.input_param.send_packet_ros && driver_param.input_param.source_type != DATA_FROM_ROS_PACKET){
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
@@ -249,10 +262,17 @@ inline void SourceDriver::SendFiretime(const double *firetime_correction_)
 
 inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 {
-  if (msg != previous_imu_msg_)
+  if (imu_publish_rate_ == -1.0F)
   {
-    imu_pub_.publish(ToRosMsg(msg));
-    previous_imu_msg_ = msg;
+    // No throttle mode, publish every IMU message
+    imu_pub_->publish(ToRosMsg(msg));
+    return;
+  }
+  const rclcpp::Time now = node_ptr_->now();
+  if ((now - last_imu_publish_time_) >= imu_duration_rate_)
+  {
+    imu_pub_->publish(ToRosMsg(msg));
+    last_imu_publish_time_ = now;
   }
 }
 

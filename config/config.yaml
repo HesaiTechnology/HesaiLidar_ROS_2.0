@@ -47,4 +47,5 @@ lidar:
       # ros_send_ptp_topic: /lidar_ptp
       # Topic used to send PTP lock status, offset through ROS
       send_packet_ros: true                         #true: Send packets through ROS 
-      send_point_cloud_ros: true                    #true: Send point cloud through ROS    
+      send_point_cloud_ros: true                    #true: Send point cloud through ROS
+      # ros_imu_publish_rate: 125.0                   #rate(Hz): If set, limits the IMU message publish rate to the specified frequency.
