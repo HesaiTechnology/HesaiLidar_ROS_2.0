@@ -5,6 +5,8 @@
 #else
   #include "hesai_lidar_sdk.hpp"
 #endif
+#include <cstdint>
+
 class DriveYamlParam
 {
 public:

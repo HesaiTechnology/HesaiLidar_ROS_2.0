@@ -29,6 +29,8 @@
  */
 
 #include "manager/node_manager.h"
+#include <cstdint>
+
 void NodeManager::Init(const YAML::Node& config)
 {
   YAML::Node lidar_config = YamlSubNodeAbort(config, "lidar");

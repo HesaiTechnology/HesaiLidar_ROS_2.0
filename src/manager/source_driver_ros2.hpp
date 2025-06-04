@@ -40,6 +40,7 @@
 #include <hesai_ros_driver/msg/firetime.hpp>
 #include <hesai_ros_driver/msg/loss_packet.hpp>
 
+#include <cstdint>
 #include <fstream>
 #include <memory>
 #include <chrono>
@@ -249,7 +250,7 @@ inline void SourceDriver::SendFiretime(const double *firetime_correction_)
 
 inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 {
-  if (msg != previous_imu_msg_)
+  if (msg.timestamp != previous_imu_msg_.timestamp)
   {
     imu_pub_->publish(ToRosMsg(msg));
     previous_imu_msg_ = msg;
