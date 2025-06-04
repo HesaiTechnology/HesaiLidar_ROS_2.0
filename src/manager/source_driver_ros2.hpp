@@ -251,7 +251,7 @@ inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 {
   if (msg != previous_imu_msg_)
   {
-    imu_pub_.publish(ToRosMsg(msg));
+    imu_pub_->publish(ToRosMsg(msg));
     previous_imu_msg_ = msg;
   }
 }
