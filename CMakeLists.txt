@@ -156,7 +156,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 # if install different cuda version, set the cuda path, like cuda-11.4
 # set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
 # find_package(CUDA REQUIRED)
-find_package(CUDA )
+find_package(CUDA QUIET)
 
 set(LIB_TARGETS source_lib
     container_lib
