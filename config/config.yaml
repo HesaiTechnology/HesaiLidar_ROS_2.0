@@ -7,7 +7,7 @@ lidar:
         device_ip_address: 192.168.1.201              # host_ip_address. If empty(""), the source ip of the udp point cloud is used
         udp_port: 2368                                # UDP destination port
         ptc_port: 9347                                # PTC port of lidar
-        group_address: 255.255.255.255
+        multicast_ip_address: 255.255.255.255
 
         use_ptc_connected: true                       # Set to false when ptc connection is not used
         correction_file_path: "Your correction file path"   # The path of correction file

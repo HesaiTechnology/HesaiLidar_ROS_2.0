@@ -73,7 +73,7 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
             udp_port: 2368                                        # UDP destination port
             ptc_port: 9347                                        # PTC port of lidar
             device_ip_address: 192.168.1.201                      # host_ip_address
-            group_address: 255.255.255.255
+            multicast_ip_address: 255.255.255.255
             pcap_path: "<Your PCAP file path>"                    # The path of pcap file
             correction_file_path: "<Your correction file path>"   # The path of correction file
             firetimes_path: "<Your firetime file path>"           # The path of firetimes file
