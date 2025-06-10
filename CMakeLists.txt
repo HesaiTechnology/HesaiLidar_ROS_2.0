@@ -39,7 +39,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   add_definitions(-O3)
 endif()
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
+if(($ENV{ROS_DISTRO} STREQUAL "jazzy"))
+add_definitions(-std=c++17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+elseif($ENV{ROS_DISTRO} STREQUAL "humble")
 add_definitions(-std=c++17)
 else()
 add_definitions(-std=c++14)
