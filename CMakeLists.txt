@@ -59,7 +59,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   add_definitions(-O3)
 endif()
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
+if(($ENV{ROS_DISTRO} STREQUAL "jazzy"))
+add_definitions(-std=c++17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+elseif($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
 add_definitions(-std=c++17)
 else()
 add_definitions(-std=c++14)
@@ -170,6 +173,12 @@ find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
+set(LIB_TARGETS 
+    hesai_sdk_lib
+    log_lib
+    lidar_lib
+    )
+
 if(${CUDA_FOUND})
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cu
@@ -184,7 +193,7 @@ endif()
 target_link_libraries(hesai_ros_driver_node                   
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
-            hesai_sdk_lib
+            ${LIB_TARGETS}
 )              
 
 target_include_directories(hesai_ros_driver_node PRIVATE
@@ -198,10 +207,15 @@ target_include_directories(hesai_ros_driver_node PRIVATE
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
   target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
-  install(TARGETS hesai_ros_driver_node
+  install(TARGETS hesai_ros_driver_node ${LIB_TARGETS}
           RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
           LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
           ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  install(DIRECTORY
+          launch
+          rviz
+          config
+          DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 endif($ENV{ROS_VERSION} MATCHES "1")
 
 
@@ -221,14 +235,16 @@ if($ENV{ROS_VERSION} MATCHES "2")
   rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
   install(TARGETS
-    hesai_ros_driver_node
-    DESTINATION lib/${PROJECT_NAME})
+          hesai_ros_driver_node
+          DESTINATION lib/${PROJECT_NAME})
+  install(TARGETS
+          ${LIB_TARGETS}
+          DESTINATION lib)
 
   install(DIRECTORY
-    launch
-    rviz
-    DESTINATION share/${PROJECT_NAME})
-    
+          launch
+          rviz
+          DESTINATION share/${PROJECT_NAME})
 
   ament_package()
 
