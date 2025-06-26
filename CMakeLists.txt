@@ -20,6 +20,11 @@ configure_file(
 set(POINT_TYPE XYZI)
 
 #=======================================
+# CUDA Enable/Disable Flag
+#=======================================
+option(ENABLE_CUDA "Enable CUDA support" ON)
+
+#=======================================
 # Compile setup (ORIGINAL, CATKIN, COLCON)
 #=======================================
 message(=============================================================)
@@ -156,7 +161,6 @@ link_directories(${Boost_LIBRARY_DIRS})
 # if install different cuda version, set the cuda path, like cuda-11.4
 # set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
 # find_package(CUDA REQUIRED)
-find_package(CUDA )
 
 set(LIB_TARGETS source_lib
     container_lib
@@ -166,35 +170,55 @@ set(LIB_TARGETS source_lib
     log_lib
     platutils_lib)
 
-if(CUDA_FOUND)
+if(ENABLE_CUDA)
+  find_package(CUDA )
 
-  message(=============================================================)
-  message("-- CUDA Found. CUDA Support is turned On.")
-  message(=============================================================)
+  if(CUDA_FOUND)
 
-  link_directories($ENV{CUDA_PATH}/lib/x64)
-  set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2")#根据具体GPU性能更改算力参数
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
-  list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
+    message(=============================================================)
+    message("-- CUDA Found. CUDA Support is turned On.")
+    message(=============================================================)
 
-  CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
-                node/hesai_ros_driver_node.cu
-                src/manager/node_manager.cu
-                ./src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src/buffer.cu
-                )
-  set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
+    link_directories($ENV{CUDA_PATH}/lib/x64)
+    set(CUDA_NVCC_FLAGS "-arch=sm_75;-O2")#根据具体GPU性能更改算力参数
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
+    list(APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC)
 
-  target_link_libraries(hesai_ros_driver_node
+    CUDA_ADD_EXECUTABLE(hesai_ros_driver_node
+                  node/hesai_ros_driver_node.cu
+                  src/manager/node_manager.cu
+                  ./src/driver/HesaiLidar_SDK_2.0/libhesai/UdpParserGpu/src/buffer.cu
+                  )
+    set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
+
+    target_link_libraries(hesai_ros_driver_node
+                  ${YAML_CPP_LIBRARIES}
+                  ${Boost_LIBRARIES}
+                  ${LIB_TARGETS}
+                  ${CUDA_LIBS}
+                  # libhesai
+      )
+  else(CUDA_FOUND)
+
+    message(=============================================================)
+    message("-- CUDA Not Found. CUDA Support is turned Off.")
+    message(=============================================================)
+    add_executable(hesai_ros_driver_node
+                  node/hesai_ros_driver_node.cc
+                  src/manager/node_manager.cc
+                  )
+    target_link_libraries(hesai_ros_driver_node
                 ${YAML_CPP_LIBRARIES}
                 ${Boost_LIBRARIES}
                 ${LIB_TARGETS}
-                ${CUDA_LIBS}
                 # libhesai
     )
-else(CUDA_FOUND)
+
+  endif(CUDA_FOUND)
+else(ENABLE_CUDA)
 
   message(=============================================================)
-  message("-- CUDA Not Found. CUDA Support is turned Off.")
+  message("-- CUDA Support is turned Off.")
   message(=============================================================)
   add_executable(hesai_ros_driver_node
                 node/hesai_ros_driver_node.cc
@@ -207,7 +231,7 @@ else(CUDA_FOUND)
               # libhesai
   )
 
-endif(CUDA_FOUND)
+endif(ENABLE_CUDA)
 
 
   target_include_directories(hesai_ros_driver_node PRIVATE
