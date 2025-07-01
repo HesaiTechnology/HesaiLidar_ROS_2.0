@@ -44,8 +44,10 @@ std::mutex g_mtx;
 std::condition_variable g_cv;
 #endif
 
+bool sig_recv = false;
 static void sigHandler(int sig)
 {
+  sig_recv = true;
 #ifdef ROS_FOUND
   ros::shutdown();
 #elif ROS2_FOUND
@@ -100,7 +102,7 @@ int main(int argc, char** argv)
   // you can chose [!demo_ptr->IsPlayEnded()] or [1] 
   // If you chose !demo_ptr->IsPlayEnded(), ROS node will end with the end of the PCAP.
   // If you select 1, the ROS node does not end with the end of the PCAP.
-  while (!demo_ptr->IsPlayEnded())
+  while (!demo_ptr->IsPlayEnded() && sig_recv == false)
   {
     std::this_thread::sleep_for(std::chrono::microseconds(100));
   }

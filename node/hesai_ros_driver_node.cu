@@ -22,18 +22,16 @@
 ************************************************************************************************/
 
 /*
- * File: hesai_ros_driver_node.cu
+ * File: hesai_ros_driver_node.cc
  * Author: Zhang Yu <zhangyu@hesaitech.com>
- * Description: Hesai sdk node for GPU
+ * Description: Hesai sdk node for CPU
  * Created on June 12, 2023, 10:46 AM
  */
 
 #include "manager/node_manager.h"
 #include <signal.h>
-
 #include <iostream>
 #include "Version.h"
-
 #ifdef ROS_FOUND
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -46,9 +44,10 @@ std::mutex g_mtx;
 std::condition_variable g_cv;
 #endif
 
-
+bool sig_recv = false;
 static void sigHandler(int sig)
 {
+  sig_recv = true;
 #ifdef ROS_FOUND
   ros::shutdown();
 #elif ROS2_FOUND
@@ -60,7 +59,6 @@ int main(int argc, char** argv)
 {
   std::cout << "-------- Hesai Lidar ROS V" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_TINY << " --------" << std::endl;
   signal(SIGINT, sigHandler);  ///< bind ctrl+c signal with the sigHandler function
-
 #ifdef ROS_FOUND
   ros::init(argc, argv, "hesai_ros_driver_node", ros::init_options::NoSigintHandler);
 #elif ROS2_FOUND
@@ -98,20 +96,16 @@ int main(int argc, char** argv)
 
   YAML::Node config;
   config = YAML::LoadFile(config_path);
-
-
   std::shared_ptr<NodeManager> demo_ptr = std::make_shared<NodeManager>();
   demo_ptr->Init(config);
   demo_ptr->Start();
-
-
-#ifdef ROS_FOUND
-  ros::MultiThreadedSpinner spinner(2); 
-  spinner.spin();
-#elif ROS2_FOUND
-  std::unique_lock<std::mutex> lck(g_mtx);
-  g_cv.wait(lck);
-#endif
-
+  // you can chose [!demo_ptr->IsPlayEnded()] or [1] 
+  // If you chose !demo_ptr->IsPlayEnded(), ROS node will end with the end of the PCAP.
+  // If you select 1, the ROS node does not end with the end of the PCAP.
+  while (!demo_ptr->IsPlayEnded() && sig_recv == false)
+  {
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
+  }
+  demo_ptr->Stop();
   return 0;
 }
