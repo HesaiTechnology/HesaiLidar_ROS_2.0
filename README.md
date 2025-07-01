@@ -12,7 +12,6 @@ Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/Hesai
 - OT
 - ATX
 - JT16
-- JT128、JT256 (need define JT128_256)
 
 ### Installation dependencies
 
@@ -69,11 +68,12 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
 
     lidar:
         - driver:
+            use_gpu: false                                        # Whether to use GPU
             pcap_play_synchronization: true                       # pcap play rate synchronize with the host time
-            udp_port: 2368                                        # UDP port of lidar
+            udp_port: 2368                                        # UDP destination port
             ptc_port: 9347                                        # PTC port of lidar
             device_ip_address: 192.168.1.201                      # host_ip_address
-            group_address: 255.255.255.255
+            multicast_ip_address: 255.255.255.255
             pcap_path: "<Your PCAP file path>"                    # The path of pcap file
             correction_file_path: "<Your correction file path>"   # The path of correction file
             firetimes_path: "<Your firetime file path>"           # The path of firetimes file
@@ -84,6 +84,7 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
             rs232_com: "Your serial port name for sending cmd"            # if using JT16, Port to send cmd
             correction_save_path: ""                                      # if using JT16, turn on when you need to store angle calibration files(from lidar)
             # transform param
+            transform_flag: false                                         # Whether to use transform
             x: 0
             y: 0
             z: 0
@@ -96,7 +97,7 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
             fov_start: -1
             fov_end:  -1
             enable_packet_loss_tool: true                         # enable the udp packet loss detection tool
-            distance_correction_lidar_flag: false                 # set to true when optical centre correction needs to be turned on
+            distance_correction_flag: false                 # set to true when optical centre correction needs to be turned on
             xt_spot_correction: false                             # Set to TRUE when XT S point cloud layering correction is required
             device_udp_src_port: 0                                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
             device_fault_port: 0                                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
@@ -106,8 +107,9 @@ $ git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_R
             ros_send_packet_topic: /lidar_packets                # Topic used to send lidar packets through ROS
             ros_send_point_cloud_topic: /lidar_points            # Topic used to send point cloud through ROS
             ros_send_imu_topic: /lidar_imu                       # Topic used to send lidar imu message
-            send_packet_ros: true                                # true: Send packets through ROS 
+            send_packet_ros: false                               # true: Send packets through ROS 
             send_point_cloud_ros: true                           # true: Send point cloud through ROS 
+            send_imu_ros: true                                   # true: Send imu through ROS   
 
 ### Real time playback
 
@@ -146,7 +148,8 @@ According to the configuration of a single lidar, multiple drivers can be create
             correction_file_path: "<The correction file path>" 
             firetimes_path: "<Your firetime file path>"       
             source_type: 2          
-            pcap_play_synchronization: true                   
+            pcap_play_synchronization: true 
+            transform_flag: false                  
             x: 0                                      
             y: 0                                     
             z: 0                                
@@ -158,8 +161,9 @@ According to the configuration of a single lidar, multiple drivers can be create
             ros_recv_packet_topic: /lidar_packets      
             ros_send_packet_topic: /lidar_packets      
             ros_send_point_cloud_topic: /lidar_points  
-            send_packet_ros: true                     
-            send_point_cloud_ros: true             
+            send_packet_ros: false                     
+            send_point_cloud_ros: true          
+            send_imu_ros: true  
         - driver:               
             udp_port: 2368                         
             ptc_port: 9347                           
@@ -168,7 +172,8 @@ According to the configuration of a single lidar, multiple drivers can be create
             correction_file_path: "<The correction file path>"  
             firetimes_path: "<Your firetime file path>"        
             source_type: 2        
-            pcap_play_synchronization: true                     
+            pcap_play_synchronization: true   
+            transform_flag: false                  
             x: 0                                       
             y: 0                                       
             z: 0                                       
@@ -181,4 +186,5 @@ According to the configuration of a single lidar, multiple drivers can be create
             ros_send_packet_topic: /lidar_packets2     
             ros_send_point_cloud_topic: /lidar_points2 
             send_packet_ros: false                     
-            send_point_cloud_ros: true                    
+            send_point_cloud_ros: true  
+            send_imu_ros: true                    
