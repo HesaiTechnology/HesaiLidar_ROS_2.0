@@ -47,7 +47,9 @@ lidar:
       # public module
       use_timestamp_type: 0                 # 0 use point cloud timestamp; 1 use receive timestamp
       frame_start_azimuth: 0                # Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it      
-      #transform param
+      # parser thread num
+      thread_num: 4
+      # transform param
       transform_flag: false
       x: 0
       y: 0
@@ -55,7 +57,7 @@ lidar:
       roll: 0
       pitch: 0
       yaw: 0
-      #fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
+      # fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
       fov_start: -1
       fov_end:  -1
       # other config
