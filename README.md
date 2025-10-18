@@ -7,7 +7,7 @@ Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/Hesai
 | Pandar       | OT    | QT       | XT          | AT       | FT    | JT    |
 |:-------------|:------|:---------|:------------|:---------|:------|:------|
 | Pandar40P    | OT128 | PandarQT | PandarXT    | AT128E2X | FT120 | JT16  |
-| Pandar64     | -     | QT128C2X | PandarXT-16 | AT128P   | -     | -     |
+| Pandar64     | -     | QT128C2X | PandarXT-16 | AT128P   | -     | JT128 |
 | Pandar128E3X | -     | -        | XT32M2X     | ATX      | -     | -     |
 
 ### Installation dependencies
@@ -131,6 +131,8 @@ lidar:
       xt_spot_correction: false             # Set to TRUE when XT S point cloud layering correction is required
       device_udp_src_port: 0                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
       device_fault_port: 0                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
+      #The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
+      channel_fov_filter: "Your channel fov filter file path"  
     ros:
       ros_frame_id: hesai_lidar                       # Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets           # Topic used to receive lidar packets from rosbag
@@ -243,6 +245,8 @@ lidar:
       xt_spot_correction: false             # Set to TRUE when XT S point cloud layering correction is required
       device_udp_src_port: 0                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
       device_fault_port: 0                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
+      #The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
+      channel_fov_filter: "Your channel fov filter file path"
     ros:
       ros_frame_id: hesai_lidar                       # Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets           # Topic used to receive lidar packets from rosbag
@@ -318,6 +322,8 @@ lidar:
       xt_spot_correction: false             # Set to TRUE when XT S point cloud layering correction is required
       device_udp_src_port: 0                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
       device_fault_port: 0                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
+      #The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
+      channel_fov_filter: "Your channel fov filter file path"
     ros:
       ros_frame_id: hesai_lidar                         # Frame id of packet message and point cloud message
       ros_recv_packet_topic: /lidar_packets_2           # Topic used to receive lidar packets from rosbag
