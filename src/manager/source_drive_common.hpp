@@ -70,7 +70,8 @@ public:
         YamlRead<bool>(       driver_config, "enable_packet_loss_tool",   driver_param.decoder_param.enable_packet_loss_tool, false);
         YamlRead<bool>(       driver_config, "distance_correction_flag",  driver_param.decoder_param.distance_correction_flag, false);
         YamlRead<bool>(       driver_config, "xt_spot_correction",        driver_param.decoder_param.xt_spot_correction, false);
-        YamlRead<std::string>(   driver_config, "channel_fov_filter",     driver_param.decoder_param.channel_fov_filter_path, "");
+        YamlRead<std::string>(   driver_config, "channel_fov_filter_path",driver_param.decoder_param.channel_fov_filter_path, "");
+        YamlRead<std::string>(   driver_config, "multi_fov_filter_ranges",driver_param.decoder_param.multi_fov_filter_ranges, "");
         YamlRead<uint16_t>(   driver_config, "device_udp_src_port",       driver_param.input_param.device_udp_src_port, 0);
         YamlRead<uint16_t>(   driver_config, "device_fault_port",         driver_param.input_param.device_fault_port, 0);
         

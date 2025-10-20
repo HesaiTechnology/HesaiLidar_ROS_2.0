@@ -65,7 +65,9 @@ lidar:
       device_udp_src_port: 0                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
       device_fault_port: 0                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
       #The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
-      channel_fov_filter: "Your channel fov filter file path"  
+      channel_fov_filter_path: "Your channel fov filter file path" 
+      # compare to channel_fov_filter_path, multi_fov_filter_ranges for all channels. example config "[20,30];[40,200]"
+      multi_fov_filter_ranges: "" 
 
     ros:
       ros_frame_id: hesai_lidar                       # Frame id of packet message and point cloud message
