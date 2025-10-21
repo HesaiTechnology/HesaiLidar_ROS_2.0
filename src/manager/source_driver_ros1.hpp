@@ -29,7 +29,6 @@
  */
 
 #pragma once
-#include <bits/stdint-uintn.h>
 #include <ros/ros.h>
 #include "std_msgs/UInt8MultiArray.h"
 #include <sensor_msgs/point_cloud2_iterator.h>
