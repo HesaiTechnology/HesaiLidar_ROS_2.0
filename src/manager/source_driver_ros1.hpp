@@ -60,9 +60,9 @@ public:
   std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
 protected:
   // Save Correction file subscribed by "ros_recv_correction_topic"
-  void RecieveCorrection(const std_msgs::UInt8MultiArray& msg);
+  void ReceiveCorrection(const std_msgs::UInt8MultiArray& msg);
   // Save packets subscribed by 'ros_recv_packet_topic'
-  void RecievePacket(const hesai_ros_driver::UdpFrame& msg);
+  void ReceivePacket(const hesai_ros_driver::UdpFrame& msg);
   // Used to publish point clouds through 'ros_send_point_cloud_topic'
   void SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg);
   // Used to publish the original pcake through 'ros_send_packet_topic'
@@ -103,7 +103,7 @@ protected:
   ros::Publisher pkt_pub_;
   // packet sub
   ros::Subscriber pkt_sub_;
-  //spin thread while recieve data from ROS topic
+  //spin thread while Receive data from ROS topic
   boost::thread* subscription_spin_thread_;
 
   ros::Publisher crt_pub_;
@@ -156,10 +156,10 @@ inline void SourceDriver::Init(const YAML::Node& config)
   }
 
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
-    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
+    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::ReceivePacket, this);
 
     if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {
-      crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::RecieveCorrection, this);
+      crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::ReceiveCorrection, this);
     }
 
     driver_param.decoder_param.enable_udp_thread = false;
@@ -372,14 +372,14 @@ inline sensor_msgs::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_config_)
   return ros_msg;
 }
 
-inline void SourceDriver::RecievePacket(const hesai_ros_driver::UdpFrame& msg)
+inline void SourceDriver::ReceivePacket(const hesai_ros_driver::UdpFrame& msg)
 {
   for (size_t i = 0; i < msg.packets.size(); i++) {
     driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg.packets[i].data[0], msg.packets[i].size);
   }
 }
 
-inline void SourceDriver::RecieveCorrection(const std_msgs::UInt8MultiArray& msg)
+inline void SourceDriver::ReceiveCorrection(const std_msgs::UInt8MultiArray& msg)
 {
   driver_ptr_->lidar_ptr_->correction_string_.resize(msg.data.size());
   std::copy(msg.data.begin(), msg.data.end(), driver_ptr_->lidar_ptr_->correction_string_.begin());
