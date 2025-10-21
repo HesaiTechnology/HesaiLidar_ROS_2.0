@@ -29,6 +29,7 @@
  */
 
 #pragma once
+#include <bits/stdint-uintn.h>
 #include <ros/ros.h>
 #include "std_msgs/UInt8MultiArray.h"
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -250,11 +251,14 @@ inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id)
 {
   sensor_msgs::PointCloud2 ros_msg;
-
+  uint32_t points_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points_num : frame.multi_points_num;
+  LidarPointXYZIRT *pPoints = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points : frame.multi_points;
+  int frame_index = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_index : frame.multi_frame_index;
+  const char *prefix = (frame.fParam.IsMultiFrameFrequency() == 0) ? "raw" : "multi";
   int fields = 6;
   ros_msg.fields.clear();
   ros_msg.fields.reserve(fields);
-  ros_msg.width = frame.points_num; 
+  ros_msg.width = points_number;
   ros_msg.height = 1; 
 
   int offset = 0;
@@ -268,7 +272,7 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   ros_msg.point_step = offset;
   ros_msg.row_step = ros_msg.width * ros_msg.point_step;
   ros_msg.is_dense = false;
-  ros_msg.data.resize(frame.points_num * ros_msg.point_step);
+  ros_msg.data.resize(points_number * ros_msg.point_step);
 
   sensor_msgs::PointCloud2Iterator<float> iter_x_(ros_msg, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y_(ros_msg, "y");
@@ -276,9 +280,9 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
   sensor_msgs::PointCloud2Iterator<float> iter_intensity_(ros_msg, "intensity");
   sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring_(ros_msg, "ring");
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
-  for (size_t i = 0; i < frame.points_num; i++)
+  for (size_t i = 0; i < points_number; i++)
   {
-    LidarPointXYZIRT point = frame.points[i];
+    LidarPointXYZIRT point = pPoints[i];
     *iter_x_ = point.x;
     *iter_y_ = point.y;
     *iter_z_ = point.z;
@@ -292,13 +296,14 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
     ++iter_ring_;
     ++iter_timestamp_;   
   }
-  printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
+  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, frame.points_num, frame.packet_num, 
+    pPoints[0].timestamp, pPoints[frame.points_num - 1].timestamp) ;
   // ros_msg.header.seq = s;
-  int64_t sec = static_cast<int64_t>(frame.points[0].timestamp);  
+  int64_t sec = static_cast<int64_t>(pPoints[0].timestamp);  
   if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp = ros::Time().fromSec(frame.points[0].timestamp);
+    ros_msg.header.stamp = ros::Time().fromSec(pPoints[0].timestamp);
   } else {
-    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame.points[0].timestamp);
+    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", pPoints[0].timestamp);
   }
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;

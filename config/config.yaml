@@ -68,6 +68,8 @@ lidar:
       channel_fov_filter_path: "Your channel fov filter file path" 
       # compare to channel_fov_filter_path, multi_fov_filter_ranges for all channels. example config "[20,30];[40,200]"
       multi_fov_filter_ranges: "" 
+      frame_frequency: 1.0                   # The frequency that point cloud sends.
+      default_frame_frequency: 10.0          # The default frequency that point cloud sends.
 
     ros:
       ros_frame_id: hesai_lidar                       # Frame id of packet message and point cloud message
