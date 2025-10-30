@@ -177,6 +177,10 @@ set(LIB_TARGETS
     hesai_sdk_lib
     log_lib
     lidar_lib
+    ptcClient_lib
+    serialClient_lib
+    source_lib
+    platutils_lib
     )
 
 if(${CUDA_FOUND})
@@ -255,5 +259,3 @@ endif()
   ament_package()
 
 endif($ENV{ROS_VERSION} MATCHES "2")
-
-
