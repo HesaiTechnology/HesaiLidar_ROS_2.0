@@ -251,8 +251,11 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
 {
   sensor_msgs::PointCloud2 ros_msg;
   uint32_t points_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points_num : frame.multi_points_num;
+  uint32_t packet_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.packet_num : frame.multi_packet_num;
   LidarPointXYZIRT *pPoints = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points : frame.multi_points;
   int frame_index = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_index : frame.multi_frame_index;
+  double frame_start_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_start_timestamp : frame.multi_frame_start_timestamp;
+  double frame_end_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_end_timestamp : frame.multi_frame_end_timestamp;
   const char *prefix = (frame.fParam.IsMultiFrameFrequency() == 0) ? "raw" : "multi";
   int fields = 6;
   ros_msg.fields.clear();
@@ -295,13 +298,13 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
     ++iter_ring_;
     ++iter_timestamp_;   
   }
-  printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.frame_start_timestamp, frame.frame_end_timestamp) ;
+  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
   // ros_msg.header.seq = s;
-  int64_t sec = static_cast<int64_t>(frame.frame_start_timestamp);  
+  int64_t sec = static_cast<int64_t>(frame_start_timestamp);  
   if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp = ros::Time().fromSec(frame.frame_start_timestamp);
+    ros_msg.header.stamp = ros::Time().fromSec(frame_start_timestamp);
   } else {
-    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame.frame_start_timestamp);
+    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame_start_timestamp);
   }
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;
@@ -378,6 +381,7 @@ inline sensor_msgs::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_config_)
 inline void SourceDriver::ReceivePacket(const hesai_ros_driver::UdpFrame& msg)
 {
   for (size_t i = 0; i < msg.packets.size(); i++) {
+    if(driver_ptr_->lidar_ptr_->origin_packets_buffer_.full()) std::this_thread::sleep_for(std::chrono::microseconds(10000));
     driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg.packets[i].data[0], msg.packets[i].size);
   }
 }

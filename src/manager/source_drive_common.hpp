@@ -22,6 +22,7 @@ public:
             YamlRead<uint16_t>(   driver_config["lidar_udp_type"], "ptc_port",                driver_param.input_param.ptc_port, 9347);
             YamlRead<std::string>(driver_config["lidar_udp_type"], "multicast_ip_address",    driver_param.input_param.multicast_ip_address, "");
             YamlRead<bool>(       driver_config["lidar_udp_type"], "use_ptc_connected",       driver_param.input_param.use_ptc_connected, true);
+            YamlRead<uint16_t>(   driver_config["lidar_udp_type"], "host_ptc_port",           driver_param.input_param.host_ptc_port, 0);
             YamlRead<std::string>(driver_config["lidar_udp_type"], "correction_file_path",    driver_param.input_param.correction_file_path, "");
             YamlRead<std::string>(driver_config["lidar_udp_type"], "firetimes_path",          driver_param.input_param.firetimes_path, "");
             YamlRead<bool>(       driver_config["lidar_udp_type"], "use_someip",              driver_param.input_param.use_someip, false);
@@ -29,6 +30,8 @@ public:
             YamlRead<uint16_t>(   driver_config["lidar_udp_type"], "fault_message_port",      driver_param.input_param.fault_message_port, 0);
             YamlRead<int>(        driver_config["lidar_udp_type"], "standby_mode",            driver_param.input_param.standby_mode, -1);
             YamlRead<int>(        driver_config["lidar_udp_type"], "speed",                   driver_param.input_param.speed, -1);
+            YamlRead<float>(      driver_config["lidar_udp_type"], "recv_point_cloud_timeout",driver_param.input_param.recv_point_cloud_timeout, -1);
+            YamlRead<float>(      driver_config["lidar_udp_type"], "ptc_connect_timeout",     driver_param.input_param.ptc_connect_timeout, -1);
             int ptc_mode;
             YamlRead<int>(        driver_config["lidar_udp_type"], "ptc_mode",                ptc_mode, 0);
             driver_param.input_param.ptc_mode = PtcMode(ptc_mode);
@@ -40,6 +43,7 @@ public:
             YamlRead<std::string>(driver_config["pcap_type"], "pcap_path",                    driver_param.input_param.pcap_path, "");
             YamlRead<std::string>(driver_config["pcap_type"], "correction_file_path",         driver_param.input_param.correction_file_path, "");
             YamlRead<std::string>(driver_config["pcap_type"], "firetimes_path",               driver_param.input_param.firetimes_path, "");
+            YamlRead<float>(      driver_config["pcap_type"], "play_rate_",                   driver_param.decoder_param.play_rate_, 1.0);
             YamlRead<bool>(       driver_config["pcap_type"], "pcap_play_synchronization",    driver_param.decoder_param.pcap_play_synchronization, false);
             YamlRead<bool>(       driver_config["pcap_type"], "pcap_play_in_loop",            driver_param.decoder_param.pcap_play_in_loop, false);
 
@@ -71,12 +75,13 @@ public:
         YamlRead<bool>(       driver_config, "enable_packet_loss_tool",   driver_param.decoder_param.enable_packet_loss_tool, false);
         YamlRead<bool>(       driver_config, "distance_correction_flag",  driver_param.decoder_param.distance_correction_flag, false);
         YamlRead<bool>(       driver_config, "xt_spot_correction",        driver_param.decoder_param.xt_spot_correction, false);
-        YamlRead<std::string>(   driver_config, "channel_fov_filter_path",driver_param.decoder_param.channel_fov_filter_path, "");
-        YamlRead<std::string>(   driver_config, "multi_fov_filter_ranges",driver_param.decoder_param.multi_fov_filter_ranges, "");
+        YamlRead<std::string>(driver_config, "channel_fov_filter_path",   driver_param.decoder_param.channel_fov_filter_path, "");
+        YamlRead<std::string>(driver_config, "multi_fov_filter_ranges",   driver_param.decoder_param.multi_fov_filter_ranges, "");
         YamlRead<uint16_t>(   driver_config, "device_udp_src_port",       driver_param.input_param.device_udp_src_port, 0);
         YamlRead<uint16_t>(   driver_config, "device_fault_port",         driver_param.input_param.device_fault_port, 0);
         YamlRead<float>(      driver_config, "frame_frequency",           driver_param.decoder_param.frame_frequency, 0);
         YamlRead<float>(      driver_config, "default_frame_frequency",   driver_param.decoder_param.default_frame_frequency, 10);
+        YamlRead<uint8_t>(    driver_config, "echo_mode_filter",          driver_param.decoder_param.echo_mode_filter, 0);
         
         // ROS related
         YamlRead<bool>(       config["ros"], "send_packet_ros",            driver_param.input_param.send_packet_ros, false);
