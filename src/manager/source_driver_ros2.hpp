@@ -65,9 +65,9 @@ public:
   std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
 protected:
   // Save Correction file subscribed by "ros_recv_correction_topic"
-  void RecieveCorrection(const std_msgs::msg::UInt8MultiArray::SharedPtr msg);
+  void ReceiveCorrection(const std_msgs::msg::UInt8MultiArray::SharedPtr msg);
   // Save packets subscribed by 'ros_recv_packet_topic'
-  void RecievePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg);
+  void ReceivePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg);
   // Used to publish point clouds through 'ros_send_point_cloud_topic'
   void SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg);
   // Used to publish the original pcake through 'ros_send_packet_topic'
@@ -114,7 +114,7 @@ protected:
   rclcpp::Publisher<hesai_ros_driver::msg::Ptp>::SharedPtr ptp_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
 
-  //spin thread while recieve data from ROS topic
+  //spin thread while Receive data from ROS topic
   boost::thread* subscription_spin_thread_;
 };
 inline void SourceDriver::Init(const YAML::Node& config)
@@ -157,10 +157,10 @@ inline void SourceDriver::Init(const YAML::Node& config)
 
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
     pkt_sub_ = node_ptr_->create_subscription<hesai_ros_driver::msg::UdpFrame>(driver_param.input_param.ros_recv_packet_topic, 10, 
-                              std::bind(&SourceDriver::RecievePacket, this, std::placeholders::_1));
+                              std::bind(&SourceDriver::ReceivePacket, this, std::placeholders::_1));
     if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {    
       crt_sub_ = node_ptr_->create_subscription<std_msgs::msg::UInt8MultiArray>(driver_param.input_param.ros_recv_correction_topic, 10, 
-                              std::bind(&SourceDriver::RecieveCorrection, this, std::placeholders::_1));
+                              std::bind(&SourceDriver::ReceiveCorrection, this, std::placeholders::_1));
     }
     driver_param.decoder_param.enable_udp_thread = false;
     subscription_spin_thread_ = new boost::thread(boost::bind(&SourceDriver::SpinRos2,this));
@@ -250,8 +250,11 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
 {
   sensor_msgs::msg::PointCloud2 ros_msg;
   uint32_t points_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points_num : frame.multi_points_num;
+  uint32_t packet_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.packet_num : frame.multi_packet_num;
   LidarPointXYZIRT *pPoints = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points : frame.multi_points;
   int frame_index = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_index : frame.multi_frame_index;
+  double frame_start_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_start_timestamp : frame.multi_frame_start_timestamp;
+  double frame_end_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_end_timestamp : frame.multi_frame_end_timestamp;
   const char *prefix = (frame.fParam.IsMultiFrameFrequency() == 0) ? "raw" : "multi";
   int fields = 6;
   ros_msg.fields.clear();
@@ -295,15 +298,14 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_timestamp_;   
   }
   // printf("HesaiLidar Runing Status [standby mode:%u]  |  [speed:%u]\n", frame.work_mode, frame.spin_speed);
-  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, frame.points_num, frame.packet_num, 
-      pPoints[0].timestamp, pPoints[frame.points_num - 1].timestamp) ;
+  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
   std::cout.flush();
-  auto sec = (uint64_t)floor(pPoints[0].timestamp);
+  auto sec = (uint64_t)floor(frame_start_timestamp);
   if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp.sec = (uint32_t)floor(pPoints[0].timestamp);
-    ros_msg.header.stamp.nanosec = (uint32_t)round((pPoints[0].timestamp - ros_msg.header.stamp.sec) * 1e9);
+    ros_msg.header.stamp.sec = (uint32_t)floor(frame_start_timestamp);
+    ros_msg.header.stamp.nanosec = (uint32_t)round((frame_start_timestamp - ros_msg.header.stamp.sec) * 1e9);
   } else {
-    printf("does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", pPoints[0].timestamp);
+    printf("does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame_start_timestamp);
   }
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;
@@ -379,14 +381,15 @@ inline sensor_msgs::msg::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_conf
   return ros_msg;
 }
 
-inline void SourceDriver::RecievePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg)
+inline void SourceDriver::ReceivePacket(const hesai_ros_driver::msg::UdpFrame::SharedPtr msg)
 {
   for (size_t i = 0; i < msg->packets.size(); i++) {
+    if(driver_ptr_->lidar_ptr_->origin_packets_buffer_.full()) std::this_thread::sleep_for(std::chrono::microseconds(10000));
     driver_ptr_->lidar_ptr_->origin_packets_buffer_.emplace_back(&msg->packets[i].data[0], msg->packets[i].size);
   }
 }
 
-inline void SourceDriver::RecieveCorrection(const std_msgs::msg::UInt8MultiArray::SharedPtr msg)
+inline void SourceDriver::ReceiveCorrection(const std_msgs::msg::UInt8MultiArray::SharedPtr msg)
 {
   driver_ptr_->lidar_ptr_->correction_string_.resize(msg->data.size());
   std::copy(msg->data.begin(), msg->data.end(), driver_ptr_->lidar_ptr_->correction_string_.begin());

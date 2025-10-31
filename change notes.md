@@ -74,3 +74,16 @@ Monday June 30rd, 2025 17:28:15
 3. Modify the config.yaml configuration table, configure different data sources through source_type, and fill in the corresponding configuration items
 4. send_imu_ros controls whether IMU data registers callback functions and whether to publish IMU data
 5. Support jazzy version, support install
+
+################################################################################
+Wednesday November 5th, 2025 16:30:00
+## version
+2.0.11
+
+## modify
+1. Added play_rate_ feature to control PCAP playback rate, with a default value of 1.0 representing 1x playback speed.
+2. Added channel_fov_filter_path feature to configure FOV files for filtering point cloud data with multiple FOVs under multiple channels.
+3. Added multi_fov_filter_ranges feature to configure FOV files for filtering point cloud data with multiple FOVs across all channels.
+4. Added frame_frequency feature to configure point cloud publishing frequency, requiring manual configuration of default_frame_frequency to the actual point cloud publishing frequency.
+5. Added host_ptc_port feature to configure the local port when connecting to PTC.
+6. Added echo_mode_filter feature to configure echo mode filtering, with a default value of 0 indicating no filtering.
