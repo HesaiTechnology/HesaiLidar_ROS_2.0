@@ -286,14 +286,14 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     }
 
     // filter out car body points if needed: cube filter
-        if(driver_param_.custom_param.bubble_filter){
-  if (std::abs(frame.points[i].x) <= driver_param_.custom_param.car_filter_distance_x && std::abs(frame.points[i].y) <= driver_param_.custom_param.car_filter_distance_y && std::abs(frame.points[i].z) <= driver_param_.custom_param.car_filter_distance_z) continue;
+    if (driver_param_.custom_param.cube_filter) {
+      if (std::abs(frame.points[i].x) <= driver_param_.custom_param.car_filter_distance_x && std::abs(frame.points[i].y) <= driver_param_.custom_param.car_filter_distance_y && std::abs(frame.points[i].z) <= driver_param_.custom_param.car_filter_distance_z) continue;
     }
 
     LidarPointXYZIRT point = frame.points[i];
     *iter_x_ = point.x;
     *iter_y_ = point.y;
-        if(driver_param_.custom_param.cube_filter){
+    *iter_z_ = point.z;
     *iter_intensity_ = point.intensity;
     *iter_ring_ = point.ring;
     *iter_timestamp_ = point.timestamp;
@@ -302,7 +302,7 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_z_;
     ++iter_intensity_;
     ++iter_ring_;
-    ++iter_timestamp_;   
+    ++iter_timestamp_;
   }
   // printf("HesaiLidar Runing Status [standby mode:%u]  |  [speed:%u]\n", frame.work_mode, frame.spin_speed);
   printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
