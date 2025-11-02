@@ -1,6 +1,8 @@
 #pragma once
 #include "utility/yaml_reader.hpp"
 #include "hesai_lidar_sdk.hpp"
+// include custom driver param that extends the SDK DriverParam
+#include "driver/custom_driver_param.h"
 class DriveYamlParam
 {
 public:
