@@ -277,6 +277,18 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
   for (size_t i = 0; i < frame.points_num; i++)
   {
+    // filter out car body points if needed: bubble filter
+    if(driver_param.input_param.bubble_filter){
+      if (!std::isfinite(frame.points[i].x) || !std::isfinite(frame.points[i].y) || !std::isfinite(frame.points[i].z)) continue;
+      double dist = std::sqrt((double)frame.points[i].x * frame.points[i].x + (double)frame.points[i].y * frame.points[i].y + (double)frame.points[i].z * frame.points[i].z);
+      if (dist <= driver_param.input_param.car_filter_distance) continue;
+    }
+
+    // filter out car body points if needed: cube filter
+    if(driver_param.input_param.cube_filter){
+      if (std::abs(frame.points[i].x) <= driver_param.input_param.car_filter_distance_x && std::abs(frame.points[i].y) <= driver_param.input_param.car_filter_distance_y && std::abs(frame.points[i].z) <= driver_param.input_param.car_filter_distance_z) continue;
+    }
+
     LidarPointXYZIRT point = frame.points[i];
     *iter_x_ = point.x;
     *iter_y_ = point.y;

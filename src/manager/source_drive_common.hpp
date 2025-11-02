@@ -72,7 +72,13 @@ public:
         YamlRead<bool>(       driver_config, "xt_spot_correction",        driver_param.decoder_param.xt_spot_correction, false);
         YamlRead<uint16_t>(   driver_config, "device_udp_src_port",       driver_param.input_param.device_udp_src_port, 0);
         YamlRead<uint16_t>(   driver_config, "device_fault_port",         driver_param.input_param.device_fault_port, 0);
-        
+        YamlRead<bool>(       driver_config, "bubble_filter",             driver_param.input_param.bubble_filter, false);
+        YamlRead<float>(      driver_config, "car_filter_distance",       driver_param.input_param.car_filter_distance, 0.0);
+        YamlRead<bool>(       driver_config, "cube_filter",               driver_param.input_param.cube_filter, false);
+        YamlRead<float>(      driver_config, "car_filter_distance_x",     driver_param.input_param.car_filter_distance_x, 0.0);
+        YamlRead<float>(      driver_config, "car_filter_distance_y",     driver_param.input_param.car_filter_distance_y, 0.0);
+        YamlRead<float>(      driver_config, "car_filter_distance_z",     driver_param.input_param.car_filter_distance_z, 0.0);
+
         // ROS related
         YamlRead<bool>(       config["ros"], "send_packet_ros",            driver_param.input_param.send_packet_ros, false);
         YamlRead<bool>(       config["ros"], "send_point_cloud_ros",       driver_param.input_param.send_point_cloud_ros, false);

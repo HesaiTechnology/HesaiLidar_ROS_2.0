@@ -78,3 +78,10 @@ lidar:
       send_packet_ros: false                          # true: Send packets through ROS 
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
+      # car points filter options
+      bubble_filter: false                            # Enable bubble filter
+      car_filter_distance: 0.0                        # Car filter distance for bubble filter
+      cube_filter: false                              # Enable cube filter
+      car_filter_distance_x: 0.0                      # Car filter distance in x direction for cube filter
+      car_filter_distance_y: 0.0                      # Car filter distance in y direction for cube filter
+      car_filter_distance_z: 0.0                      # Car filter distance in z direction for cube filter
