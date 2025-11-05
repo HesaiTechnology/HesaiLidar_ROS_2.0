@@ -29,7 +29,7 @@
  */
 
 #pragma once
-
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS // retain the Bind placeholders (_1, _2, ...) in the global namespace
 #include "utility/yaml_reader.hpp"
 #ifdef ROS_FOUND
 #include "source_driver_ros1.hpp"
