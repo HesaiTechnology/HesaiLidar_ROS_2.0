@@ -259,6 +259,8 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   //ros_msg.width = frame.points_num; 
   //ros_msg.height = 1; 
 
+  RCLCPP_INFO(node_ptr_->get_logger(), "Converting to ROS PointCloud2 message with %u points", frame.points_num);
+
   int offset = 0;
   offset = addPointField(ros_msg, "x", 1, sensor_msgs::msg::PointField::FLOAT32, offset);
   offset = addPointField(ros_msg, "y", 1, sensor_msgs::msg::PointField::FLOAT32, offset);
@@ -279,7 +281,7 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   sensor_msgs::PointCloud2Iterator<float> iter_intensity_(ros_msg, "intensity");
   sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring_(ros_msg, "ring");
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
-  for (size_t i = 0; i < n_real_points; i++)
+  for (size_t i = 0; i < frame.points_num; i++)
   {
     if (!std::isfinite(frame.points[i].x) || !std::isfinite(frame.points[i].y) || !std::isfinite(frame.points[i].z)){
       n_real_points--;
@@ -303,6 +305,7 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
       }
     }
 
+    // copy point data for better readability, could be optimized later...
     LidarPointXYZIRT point = frame.points[i];
     *iter_x_ = point.x;
     *iter_y_ = point.y;
@@ -317,6 +320,9 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_ring_;
     ++iter_timestamp_;
   }
+
+  RCLCPP_INFO(node_ptr_->get_logger(), "Saving message with %u points", n_real_points);
+
   ros_msg.width = n_real_points;
   ros_msg.height = 1;
   ros_msg.row_step = ros_msg.width * ros_msg.point_step;
