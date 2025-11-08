@@ -181,6 +181,7 @@ set(LIB_TARGETS
     source_lib
     platutils_lib
     serialClient_lib
+    someipClient_lib
     udpParser_lib
     )
 
