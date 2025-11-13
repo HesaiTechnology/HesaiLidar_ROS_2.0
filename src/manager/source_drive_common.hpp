@@ -25,7 +25,6 @@ public:
             YamlRead<uint16_t>(   driver_config["lidar_udp_type"], "host_ptc_port",           driver_param.input_param.host_ptc_port, 0);
             YamlRead<std::string>(driver_config["lidar_udp_type"], "correction_file_path",    driver_param.input_param.correction_file_path, "");
             YamlRead<std::string>(driver_config["lidar_udp_type"], "firetimes_path",          driver_param.input_param.firetimes_path, "");
-            YamlRead<bool>(       driver_config["lidar_udp_type"], "use_someip",              driver_param.input_param.use_someip, false);
             YamlRead<std::string>(driver_config["lidar_udp_type"], "host_ip_address",         driver_param.input_param.host_ip_address, "192.168.1.100");
             YamlRead<uint16_t>(   driver_config["lidar_udp_type"], "fault_message_port",      driver_param.input_param.fault_message_port, 0);
             YamlRead<int>(        driver_config["lidar_udp_type"], "standby_mode",            driver_param.input_param.standby_mode, -1);
