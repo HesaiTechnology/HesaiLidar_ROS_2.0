@@ -84,7 +84,6 @@ lidar:
         recv_point_cloud_timeout: -1                  # The timeout of receiving point cloud
         ptc_connect_timeout: -1                       # The timeout of ptc connection
 
-        use_someip: false
         host_ip_address: ""
         fault_message_port: 0
 
@@ -209,7 +208,6 @@ lidar:
         recv_point_cloud_timeout: -1                  # The timeout of receiving point cloud
         ptc_connect_timeout: -1                       # The timeout of ptc connection
 
-        use_someip: false
         host_ip_address: ""
         fault_message_port: 0
 
@@ -297,7 +295,6 @@ lidar:
         recv_point_cloud_timeout: -1                  # The timeout of receiving point cloud
         ptc_connect_timeout: -1                       # The timeout of ptc connection
 
-        use_someip: false
         host_ip_address: ""
         fault_message_port: 0
 
