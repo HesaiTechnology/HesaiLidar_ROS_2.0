@@ -142,7 +142,7 @@ inline void SourceDriver::Init(const YAML::Node& config)
     } 
 
     if (driver_param.input_param.ros_send_correction_topic != NULL_TOPIC) {
-      crt_pub_ = nh_->advertise<std_msgs::UInt8MultiArray>(driver_param.input_param.ros_send_correction_topic, 10);
+      crt_pub_ = nh_->advertise<std_msgs::UInt8MultiArray>(driver_param.input_param.ros_send_correction_topic, 10, true);
     } 
   }
   if (! driver_param.input_param.firetimes_path.empty() ) {
