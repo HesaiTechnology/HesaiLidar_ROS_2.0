@@ -100,7 +100,7 @@ protected:
   ros::Publisher pub_;
   std::string frame_id_;
   // store driver parameters including custom fields (bubble/cube filters)
-  hesai::lidar::CustomDriverParam driver_param_;
+  hesai::lidar::CustomDriverParam driver_param;
   // publish packet 
   ros::Publisher pkt_pub_;
   // packet sub
@@ -120,47 +120,47 @@ protected:
 inline void SourceDriver::Init(const YAML::Node& config)
 {
   DriveYamlParam yaml_param;
-  yaml_param.GetDriveYamlParam(config, driver_param_);
-  frame_id_ = driver_param_.input_param.frame_id;
+  yaml_param.GetDriveYamlParam(config, driver_param);
+  frame_id_ = driver_param.input_param.frame_id;
 
   nh_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
-  if (driver_param_.input_param.send_point_cloud_ros) {
-    pub_ = nh_->advertise<sensor_msgs::PointCloud2>(driver_param_.input_param.ros_send_point_topic, 10);
+  if (driver_param.input_param.send_point_cloud_ros) {
+    pub_ = nh_->advertise<sensor_msgs::PointCloud2>(driver_param.input_param.ros_send_point_topic, 10);
   }
 
-  if (driver_param_.input_param.send_imu_ros) {
-    imu_pub_ = nh_->advertise<sensor_msgs::Imu>(driver_param_.input_param.ros_send_imu_topic, 10);
+  if (driver_param.input_param.send_imu_ros) {
+    imu_pub_ = nh_->advertise<sensor_msgs::Imu>(driver_param.input_param.ros_send_imu_topic, 10);
   }
   
-  if (driver_param_.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
-    loss_pub_ = nh_->advertise<hesai_ros_driver::LossPacket>(driver_param_.input_param.ros_send_packet_loss_topic, 10);
+  if (driver_param.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
+    loss_pub_ = nh_->advertise<hesai_ros_driver::LossPacket>(driver_param.input_param.ros_send_packet_loss_topic, 10);
   } 
 
-  if (driver_param_.input_param.source_type == DATA_FROM_LIDAR) {
-    if (driver_param_.input_param.ros_send_ptp_topic != NULL_TOPIC) {
-      ptp_pub_ = nh_->advertise<hesai_ros_driver::Ptp>(driver_param_.input_param.ros_send_ptp_topic, 10);
+  if (driver_param.input_param.source_type == DATA_FROM_LIDAR) {
+    if (driver_param.input_param.ros_send_ptp_topic != NULL_TOPIC) {
+      ptp_pub_ = nh_->advertise<hesai_ros_driver::Ptp>(driver_param.input_param.ros_send_ptp_topic, 10);
     } 
 
-    if (driver_param_.input_param.ros_send_correction_topic != NULL_TOPIC) {
-      crt_pub_ = nh_->advertise<std_msgs::UInt8MultiArray>(driver_param_.input_param.ros_send_correction_topic, 10);
+    if (driver_param.input_param.ros_send_correction_topic != NULL_TOPIC) {
+      crt_pub_ = nh_->advertise<std_msgs::UInt8MultiArray>(driver_param.input_param.ros_send_correction_topic, 10);
     } 
   }
-  if (! driver_param_.input_param.firetimes_path.empty() ) {
-    if (driver_param_.input_param.ros_send_firetime_topic != NULL_TOPIC) {
-      firetime_pub_ = nh_->advertise<hesai_ros_driver::Firetime>(driver_param_.input_param.ros_send_firetime_topic, 10);
+  if (! driver_param.input_param.firetimes_path.empty() ) {
+    if (driver_param.input_param.ros_send_firetime_topic != NULL_TOPIC) {
+      firetime_pub_ = nh_->advertise<hesai_ros_driver::Firetime>(driver_param.input_param.ros_send_firetime_topic, 10);
     } 
   }
 
-  if (driver_param_.input_param.send_packet_ros) {
-    pkt_pub_ = nh_->advertise<hesai_ros_driver::UdpFrame>(driver_param_.input_param.ros_send_packet_topic, 10);
+  if (driver_param.input_param.send_packet_ros) {
+    pkt_pub_ = nh_->advertise<hesai_ros_driver::UdpFrame>(driver_param.input_param.ros_send_packet_topic, 10);
   }
 
 <<<<<<< HEAD
-  if (driver_param_.input_param.source_type == DATA_FROM_ROS_PACKET) {
-    pkt_sub_ = nh_->subscribe(driver_param_.input_param.ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
+  if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
+    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
 
-    if (driver_param_.input_param.ros_recv_correction_topic != NULL_TOPIC) {
-      crt_sub_ = nh_->subscribe(driver_param_.input_param.ros_recv_correction_topic, 10, &SourceDriver::RecieveCorrection, this);
+    if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {
+      crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::RecieveCorrection, this);
 =======
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
     pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::ReceivePacket, this);
@@ -170,35 +170,35 @@ inline void SourceDriver::Init(const YAML::Node& config)
 >>>>>>> upstream/master
     }
 
-    driver_param_.decoder_param.enable_udp_thread = false;
+    driver_param.decoder_param.enable_udp_thread = false;
     subscription_spin_thread_ = new boost::thread(boost::bind(&SourceDriver::SpinRos1,this));
   }
 
   driver_ptr_.reset(new HesaiLidarSdk<LidarPointXYZIRT>());
-  driver_param_.decoder_param.enable_parser_thread = true;
-  if (driver_param_.input_param.send_point_cloud_ros) {
+  driver_param.decoder_param.enable_parser_thread = true;
+  if (driver_param.input_param.send_point_cloud_ros) {
     driver_ptr_->RegRecvCallback([this](const hesai::lidar::LidarDecodedFrame<hesai::lidar::LidarPointXYZIRT>& frame) {  
       this->SendPointCloud(frame);  
     }); 
   }
-  if (driver_param_.input_param.send_imu_ros) {
+  if (driver_param.input_param.send_imu_ros) {
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendImuConfig, this, std::placeholders::_1));
   }
-  if (driver_param_.input_param.send_packet_ros) {
+  if (driver_param.input_param.send_packet_ros) {
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacket, this, std::placeholders::_1, std::placeholders::_2)) ;
   }
-  if (driver_param_.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
+  if (driver_param.input_param.ros_send_packet_loss_topic != NULL_TOPIC) {
     driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPacketLoss, this, std::placeholders::_1, std::placeholders::_2));
   }
-  if (driver_param_.input_param.source_type == DATA_FROM_LIDAR) {
-    if (driver_param_.input_param.ros_send_correction_topic != NULL_TOPIC) {
+  if (driver_param.input_param.source_type == DATA_FROM_LIDAR) {
+    if (driver_param.input_param.ros_send_correction_topic != NULL_TOPIC) {
       driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendCorrection, this, std::placeholders::_1));
     }
-    if (driver_param_.input_param.ros_send_ptp_topic != NULL_TOPIC) {
+    if (driver_param.input_param.ros_send_ptp_topic != NULL_TOPIC) {
       driver_ptr_->RegRecvCallback(std::bind(&SourceDriver::SendPTP, this, std::placeholders::_1, std::placeholders::_2));
     }
   } 
-  if (!driver_ptr_->Init(driver_param_))
+  if (!driver_ptr_->Init(driver_param))
   {
     std::cout << "Driver Initialize Error...." << std::endl;
     exit(-1);
