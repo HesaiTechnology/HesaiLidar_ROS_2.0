@@ -48,11 +48,11 @@ lidar:
       use_timestamp_type: 0                 # 0 use point cloud timestamp; 1 use receive timestamp
       frame_start_azimuth: 0                # Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it      
       #transform param
-      transform_flag: false
+      transform_flag: true
       x: 0
       y: 0
-      z: 0
-      roll: 0
+      z: 1.18
+      roll: 0.144
       pitch: 0
       yaw: 0
       #fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
@@ -79,8 +79,8 @@ lidar:
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
       # car points filter options
-      bubble_filter: false                            # Enable bubble filter
-      car_filter_distance: 0.0                        # Car filter distance for bubble filter
+      bubble_filter: true                            # Enable bubble filter
+      car_filter_distance: 2.0                        # Car filter distance for bubble filter
       cube_filter: false                              # Enable cube filter
       car_filter_distance_x: 0.0                      # Car filter distance in x direction for cube filter
       car_filter_distance_y: 0.0                      # Car filter distance in y direction for cube filter
