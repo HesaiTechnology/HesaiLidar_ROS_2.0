@@ -103,6 +103,8 @@ protected:
   // Convert Angular Velocity from degree/s to radian/s
   double From_degs_To_rads(double degree);
   std::string frame_id_;
+  // store driver parameters including custom fields (bubble/cube filters)
+  hesai::lidar::CustomDriverParam driver_param;
 
   rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr crt_sub_;
   rclcpp::Subscription<hesai_ros_driver::msg::UdpFrame>::SharedPtr pkt_sub_;
@@ -119,7 +121,6 @@ protected:
 };
 inline void SourceDriver::Init(const YAML::Node& config)
 {
-  DriverParam driver_param;
   DriveYamlParam yaml_param;
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
@@ -256,11 +257,14 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   double frame_start_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_start_timestamp : frame.multi_frame_start_timestamp;
   double frame_end_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_end_timestamp : frame.multi_frame_end_timestamp;
   const char *prefix = (frame.fParam.IsMultiFrameFrequency() == 0) ? "raw" : "multi";
+  size_t n_real_points = frame.points_num;
   int fields = 6;
   ros_msg.fields.clear();
   ros_msg.fields.reserve(fields);
-  ros_msg.width = points_number; 
-  ros_msg.height = 1; 
+  //ros_msg.width = frame.points_num; 
+  //ros_msg.height = 1; 
+
+  RCLCPP_INFO(node_ptr_->get_logger(), "Converting to ROS PointCloud2 message with %u points", frame.points_num);
 
   int offset = 0;
   offset = addPointField(ros_msg, "x", 1, sensor_msgs::msg::PointField::FLOAT32, offset);
@@ -271,18 +275,42 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   offset = addPointField(ros_msg, "timestamp", 1, sensor_msgs::msg::PointField::FLOAT64, offset);
 
   ros_msg.point_step = offset;
-  ros_msg.row_step = ros_msg.width * ros_msg.point_step;
+  //ros_msg.row_step = ros_msg.width * ros_msg.point_step;
   ros_msg.is_dense = false;
-  ros_msg.data.resize(points_number * ros_msg.point_step);
-
+  ros_msg.data.resize(n_real_points * ros_msg.point_step);
+  //ros_msg.data.resize(frame.points_num * ros_msg.point_step);
+  
   sensor_msgs::PointCloud2Iterator<float> iter_x_(ros_msg, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y_(ros_msg, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z_(ros_msg, "z");
   sensor_msgs::PointCloud2Iterator<float> iter_intensity_(ros_msg, "intensity");
   sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring_(ros_msg, "ring");
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
-  for (size_t i = 0; i < points_number; i++)
+  for (size_t i = 0; i < frame.points_num; i++)
   {
+    if (!std::isfinite(frame.points[i].x) || !std::isfinite(frame.points[i].y) || !std::isfinite(frame.points[i].z)){
+      n_real_points--;
+      continue;
+    }
+
+    // filter out car body points if needed: bubble filter
+    if(driver_param.custom_param.bubble_filter){
+      double dist = std::sqrt((double)frame.points[i].x * frame.points[i].x + (double)frame.points[i].y * frame.points[i].y + (double)frame.points[i].z * frame.points[i].z);
+      if (dist <= driver_param.custom_param.car_filter_distance) {
+        n_real_points--;
+        continue;
+      }
+    }
+
+    // filter out car body points if needed: cube filter
+    if (driver_param.custom_param.cube_filter) {
+      if (std::abs(frame.points[i].x) <= driver_param.custom_param.car_filter_distance_x && std::abs(frame.points[i].y) <= driver_param.custom_param.car_filter_distance_y && std::abs(frame.points[i].z) <= driver_param.custom_param.car_filter_distance_z) {
+        n_real_points--;
+        continue;
+      }
+    }
+
+    // copy point data for better readability, could be optimized later...
     LidarPointXYZIRT point = pPoints[i];
     *iter_x_ = point.x;
     *iter_y_ = point.y;
@@ -295,10 +323,15 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_z_;
     ++iter_intensity_;
     ++iter_ring_;
-    ++iter_timestamp_;   
+    ++iter_timestamp_;
   }
+
+  ros_msg.width = n_real_points;
+  ros_msg.height = 1;
+  ros_msg.row_step = ros_msg.width * ros_msg.point_step;
+  ros_msg.data.resize(n_real_points * ros_msg.point_step);
   // printf("HesaiLidar Runing Status [standby mode:%u]  |  [speed:%u]\n", frame.work_mode, frame.spin_speed);
-  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
+  //printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
   std::cout.flush();
   auto sec = (uint64_t)floor(frame_start_timestamp);
   if (sec <= std::numeric_limits<int32_t>::max()) {

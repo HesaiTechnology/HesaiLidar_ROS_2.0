@@ -34,7 +34,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 
 ### Clone
 
-    git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+    git clone --recurse-submodules https://github.com/leonardonels/HesaiLidar_ROS_2.0.git
     
 
 ### Compile and run
@@ -52,7 +52,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
     Create an `src` folder, copy the source code of the ros driver into it, and then run the following command:
         
         colcon build --symlink-install
-        . install/local_setup.bash
+        . install/setup.bash
 
     For ROS2-Dashing     
 
@@ -60,7 +60,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
         
     For other ROS2 version
 
-        ros2 launch hesai_ros_driver start.py
+        ros2 launch hesai_ros_driver start_node_only.py
 
 ### Introduction to the configuration file `config.yaml` parameters
 
