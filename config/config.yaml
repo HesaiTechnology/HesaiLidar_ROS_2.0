@@ -1,6 +1,6 @@
 lidar:
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
