@@ -16,7 +16,9 @@ configure_file(
 set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
 # set(FIND_CUDA ON CACHE BOOL "Find CUDA")
 
-find_package(CUDA QUIET)
+# uncomment to use gpu acceleration
+find_package(CUDA QUIET)  
+
 if(${CUDA_FOUND})
   message(=============================================================)
   message("-- CUDA_FOUND is True")

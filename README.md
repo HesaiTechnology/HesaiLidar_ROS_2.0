@@ -67,7 +67,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 ```yaml
 lidar:
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
@@ -191,7 +191,7 @@ According to the configuration of a single lidar, multiple drivers can be create
 ```yaml
 lidar:
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
@@ -278,7 +278,7 @@ lidar:
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
