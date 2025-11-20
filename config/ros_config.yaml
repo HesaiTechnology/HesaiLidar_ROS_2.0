@@ -29,9 +29,9 @@ lidar:
         caFile: ""                                    # Represents the path of the CA certificate 
 
       pcap_type:
-        pcap_path: "/file.pcap"                         # The path of pcap file
-        correction_file_path: "/home/orin/ros2_ws/src/HesaiLidar_ROS_2.0/src/driver/HesaiLidar_SDK_2.0/correction/angle_correction/OT128_Angle Correction File.csv"   # The path of correction file
-        firetimes_path: "/home/orin/ros2_ws/src/HesaiLidar_ROS_2.0/src/driver/HesaiLidar_SDK_2.0/correction/firetime_correction/OT128_Firetime Correction File.csv"           # The path of firetimes file
+        pcap_path: "/home/orin/ros2_dev/pcaps/bag.pcap"                         # The path of pcap file
+        correction_file_path: "/home/orin/ros2_dev/src/HesaiLidar_ROS_2.0/src/driver/HesaiLidar_SDK_2.0/correction/angle_correction/OT128_Angle Correction File.csv"   # The path of correction file
+        firetimes_path: "/home/orin/ros2_dev/src/HesaiLidar_ROS_2.0/src/driver/HesaiLidar_SDK_2.0/correction/firetime_correction/OT128_Firetime Correction File.csv"           # The path of firetimes file
 
         pcap_play_synchronization: true                     # pcap play rate synchronize with the host time
         pcap_play_in_loop: true
@@ -62,7 +62,7 @@ lidar:
       # fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
       fov_start: -1
       fov_end:  -1
-      channel_fov_filter_path: "Your channel fov filter file path"  # The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
+      channel_fov_filter_path: ""  # The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
       multi_fov_filter_ranges: "" # compare to channel_fov_filter_path, multi_fov_filter_ranges for all channels. example config "[20,30];[40,200]"
       # other config
       enable_packet_loss_tool: true         # enable the udp packet loss detection tool
