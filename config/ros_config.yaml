@@ -1,3 +1,4 @@
+rviz2: true
 lidar:
   - driver:
       use_gpu: true

@@ -62,9 +62,10 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 
         ros2 launch hesai_ros_driver hesai.launch.py
 
-### Introduction to the configuration file `config.yaml` parameters
+### Introduction to the configuration file `ros_config.yaml` parameters
 
 ```yaml
+rviz2: false                                          # Set to true to also open rviz2 with lidar_points
 lidar:
   - driver:
       use_gpu: true
