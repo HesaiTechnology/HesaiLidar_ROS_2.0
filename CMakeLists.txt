@@ -106,8 +106,8 @@ if($ENV{ROS_VERSION} MATCHES "1")
   )
 
 
-  catkin_package(CATKIN_DEPENDS
-    sensor_msgs
+  catkin_package(CATKIN_DEPENDS 
+    sensor_msgs 
     roslib)
 
 endif($ENV{ROS_VERSION} MATCHES "1")
@@ -128,13 +128,13 @@ if($ENV{ROS_VERSION} MATCHES "2")
 
     find_package(ament_cmake REQUIRED)
     find_package(sensor_msgs REQUIRED)
-    find_package(std_msgs REQUIRED)
+    find_package(std_msgs REQUIRED)  
     find_package(rclcpp_action REQUIRED)
-    find_package(rosidl_typesupport_c REQUIRED)
+    find_package(rosidl_typesupport_c REQUIRED) 
     find_package(rosidl_default_generators REQUIRED)
     find_package(builtin_interfaces REQUIRED)
     find_package(std_msgs REQUIRED)
-
+    
     rosidl_generate_interfaces(${PROJECT_NAME}
       "msg/msg_ros2/UdpPacket.msg"
       "msg/msg_ros2/UdpFrame.msg"
@@ -143,8 +143,8 @@ if($ENV{ROS_VERSION} MATCHES "2")
       "msg/msg_ros2/LossPacket.msg"
       DEPENDENCIES builtin_interfaces std_msgs
     )
-    ament_export_dependencies(rosidl_default_runtime)
-
+    ament_export_dependencies(rosidl_default_runtime)                 
+    
   else(rclcpp_FOUND)
 
     message(=============================================================)
@@ -162,7 +162,7 @@ find_package(yaml-cpp REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 #Driver core#
-set(DISENABLE_TEST_CC ON CACHE BOOL "DISENABLE_TEST_CC")
+set(DISENABLE_TEST_CC ON CACHE BOOL "DISENABLE_TEST_CC")  
 add_subdirectory(src/driver/HesaiLidar_SDK_2.0)
 
 #========================
@@ -173,7 +173,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-set(LIB_TARGETS
+set(LIB_TARGETS 
     hesai_sdk_lib
     log_lib
     lidar_lib
@@ -199,11 +199,11 @@ else()
     src/manager/node_manager.cc
     )
 endif()
-target_link_libraries(hesai_ros_driver_node
+target_link_libraries(hesai_ros_driver_node                   
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
             ${LIB_TARGETS}
-)
+)              
 
 target_include_directories(hesai_ros_driver_node PRIVATE
   src/manager
@@ -211,7 +211,7 @@ target_include_directories(hesai_ros_driver_node PRIVATE
   src/msg/rs_msg
   src/utility
   ${CMAKE_CURRENT_BINARY_DIR}
-)
+)  
 
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
@@ -232,13 +232,13 @@ endif($ENV{ROS_VERSION} MATCHES "1")
 
 if($ENV{ROS_VERSION} MATCHES "2")
   find_package(ament_index_cpp REQUIRED)
-  ament_target_dependencies(hesai_ros_driver_node
+  ament_target_dependencies(hesai_ros_driver_node 
   "ament_index_cpp"
   "rcl_interfaces"
-  "rclcpp"
+  "rclcpp" 
   "rcutils"
-  "std_msgs"
-  "sensor_msgs"
+  "std_msgs" 
+  "sensor_msgs" 
   # "tf2_geometry_msgs"
   )
 
