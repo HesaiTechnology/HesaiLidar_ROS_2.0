@@ -189,6 +189,10 @@ if(${CUDA_FOUND})
     node/hesai_ros_driver_node.cu
     src/manager/node_manager.cc
     )
+  set(LIB_TARGETS
+    ${LIB_TARGETS}
+    udpParserGpu_lib
+    )
 else()
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cc
