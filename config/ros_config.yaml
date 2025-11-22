@@ -1,0 +1,99 @@
+/hesai_driver_node:
+  ros__parameters:
+    lidar:
+      driver:
+        use_gpu: true
+        source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
+        # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
+        lidar_udp_type:
+          device_ip_address: 192.168.1.201              # host_ip_address. If empty(""), the source ip of the udp point cloud is used
+          udp_port: 2368                                # UDP destination port
+          ptc_port: 9347                                # PTC port of lidar
+          multicast_ip_address: 255.255.255.255
+
+          use_ptc_connected: true                       # Set to false when ptc connection is not used
+          host_ptc_port: 0                              # PTC source port, 0 means auto
+          correction_file_path: "Your correction file path"   # The path of correction file
+          firetimes_path: "Your firetime file path"           # The path of firetimes file
+
+          recv_point_cloud_timeout: -1                  # The timeout of receiving point cloud
+          ptc_connect_timeout: -1                       # The timeout of ptc connection
+
+          host_ip_address: ""
+          fault_message_port: 0
+
+          standby_mode: -1                              # The standby mode: [-1] is invalit [0] in operation [1] standby
+          speed: -1                                     # The speed: [-1] invalit, you must make sure your set has been supported by the lidar you are using
+          ptc_mode: 0                                   # The ptc mode: [0] tcp [1] tcp_ssl
+          # tcp_ssl use
+          certFile: ""                                  # Represents the path of the user's certificate
+          privateKeyFile: ""                            # Represents the path of the user's private key 
+          caFile: ""                                    # Represents the path of the CA certificate 
+
+        pcap_type:
+          pcap_path: "file.pcap"                         # The path of pcap file
+          correction_file_path: "/home/orin/ros2_dev/src/HesaiLidar_ROS_2.0/src/driver/HesaiLidar_SDK_2.0/correction/angle_correction/OT128_Angle Correction File.csv"   # The path of correction file
+          firetimes_path: "/home/orin/ros2_dev/src/HesaiLidar_ROS_2.0/src/driver/HesaiLidar_SDK_2.0/correction/firetime_correction/OT128_Firetime Correction File.csv"           # The path of firetimes file
+
+          pcap_play_synchronization: true                     # pcap play rate synchronize with the host time
+          pcap_play_in_loop: true
+          play_rate_: 1.0                                     # pcap play rate 
+
+        rosbag_type:
+          correction_file_path: "Your correction file path"   # The path of correction file
+          firetimes_path: "Your firetime file path"           # The path of firetimes file
+
+        serial_type:
+          rs485_com: "Your serial port name for receiving point cloud"  # if using JT16, Port to receive the point cloud
+          rs232_com: "Your serial port name for sending cmd"            # if using JT16, Port to send cmd
+          point_cloud_baudrate: 3125000
+          correction_save_path: ""                                      # turn on when you need to store angle calibration files(from lidar)
+          correction_file_path: "Your correction file path"             # The path of correction file
+
+        # public module
+        use_timestamp_type: 0                 # 0 use point cloud timestamp; 1 use receive timestamp
+        frame_start_azimuth: 0                # Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it      
+        #transform param
+        transform_flag: true
+        x: 0
+        y: 0
+        z: 1.1
+        roll: 0.087
+        pitch: 0
+        yaw: 0
+        # fov config, [fov_start, fov_end] range [1, 359], [-1, -1]means use default
+        fov_start: -1
+        fov_end:  -1
+        channel_fov_filter_path: "Your channel fov filter file path"  # The path of channel_fov_filter file, like channel 0 filter [10, 20] and [30,40]
+        multi_fov_filter_ranges: "" # compare to channel_fov_filter_path, multi_fov_filter_ranges for all channels. example config "[20,30];[40,200]"
+        # other config
+        enable_packet_loss_tool: true         # enable the udp packet loss detection tool
+        distance_correction_flag: false       # set to true when optical centre correction needs to be turned on
+        xt_spot_correction: false             # Set to TRUE when XT S point cloud layering correction is required
+        device_udp_src_port: 0                # Filter point clouds for specified source ports in case of multiple lidar, setting >=1024
+        device_fault_port: 0                  # Filter fault message for specified source ports in case of multiple lidar, setting >=1024
+        frame_frequency: 0                    # The frequency that point cloud sends.
+        default_frame_frequency: 10.0         # The default frequency that point cloud sends.
+        echo_mode_filter: 0                   # return mode filter
+
+      ros:
+        ros_frame_id: hesai_lidar                       # Frame id of packet message and point cloud message
+        ros_recv_packet_topic: /lidar_packets           # Topic used to receive lidar packets from rosbag
+        ros_send_packet_topic: /lidar_packets           # Topic used to send lidar raw packets through ROS
+        ros_send_point_cloud_topic: /lidar_points       # Topic used to send point cloud through ROS
+        ros_send_imu_topic: /lidar_imu                  # Topic used to send lidar imu message
+        ros_send_packet_loss_topic: /lidar_packets_loss # Topic used to monitor packets loss condition through ROS
+        # ros_recv_correction_topic: /lidar_corrections # Topic used to receive corrections file from rosbag
+        # ros_send_correction_topic: /lidar_corrections # Topic used to send correction through ROS
+        # ros_send_firetime_topic: /lidar_firetime
+        # ros_send_ptp_topic: /lidar_ptp                # Topic used to send PTP lock status, offset through ROS
+        send_packet_ros: false                          # true: Send packets through ROS 
+        send_point_cloud_ros: true                      # true: Send point cloud through ROS    
+        send_imu_ros: true                              # true: Send imu through ROS    
+        # car points filter options
+        bubble_filter: true                            # Enable bubble filter
+        car_filter_distance: 2.0                        # Car filter distance for bubble filter
+        cube_filter: false                              # Enable cube filter
+        car_filter_distance_x: 0.0                      # Car filter distance in x direction for cube filter
+        car_filter_distance_y: 0.0                      # Car filter distance in y direction for cube filter
+        car_filter_distance_z: 0.0                      # Car filter distance in z direction for cube filter
