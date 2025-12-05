@@ -60,7 +60,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
         
     For other ROS2 version
 
-        ros2 launch hesai_ros_driver start_node_only.py
+        ros2 launch hesai_ros_driver hesai.launch.py
 
 ### Introduction to the configuration file `config.yaml` parameters
 
