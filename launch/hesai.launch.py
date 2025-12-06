@@ -16,5 +16,6 @@ def generate_launch_description():
             package='hesai_ros_driver',
             executable='hesai_ros_driver_node',
             output='screen',
-            parameters=[config_dir]),
+            parameters=[{'config_path': config_dir}]
+    ),
     ])
