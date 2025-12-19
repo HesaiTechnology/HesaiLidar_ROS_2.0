@@ -103,7 +103,7 @@ protected:
   // Convert Angular Velocity from degree/s to radian/s
   double From_degs_To_rads(double degree);
   std::string frame_id_;
-  bool first_frame_;
+  // store the driver start time when real_time_timestamp is true
   double driver_start_timestamp_;
   // store driver parameters including custom fields (bubble/cube filters)
   hesai::lidar::CustomDriverParam driver_param;
@@ -128,8 +128,13 @@ inline void SourceDriver::Init(const YAML::Node& config)
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
 
-  first_frame_=true;
-  driver_start_timestamp_ = 0.0;
+  if (driver_param.custom_param.real_time_timestamp)
+  {
+    rclcpp::Clock clock(RCL_ROS_TIME);
+    driver_start_timestamp_ = clock.now().seconds();
+  }else{
+    driver_start_timestamp_ = 0.0;
+  }
 
   node_ptr_.reset(new rclcpp::Node("hesai_ros_driver_node"));
   if (driver_param.input_param.send_point_cloud_ros) {
@@ -255,13 +260,6 @@ inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 
 inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id)
 {
-  if (first_frame_ && driver_param.custom_param.real_time_timestamp)
-  {
-    rclcpp::Clock clock(RCL_ROS_TIME);
-    driver_start_timestamp_ = clock.now().seconds();
-    first_frame_ = false;
-  }
-
   sensor_msgs::msg::PointCloud2 ros_msg;
   uint32_t points_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.points_num : frame.multi_points_num;
   uint32_t packet_number = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.packet_num : frame.multi_packet_num;
@@ -412,8 +410,8 @@ inline sensor_msgs::msg::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_conf
   sensor_msgs::msg::Imu ros_msg;
   auto sec = (uint64_t)floor(imu_config_.timestamp);
   if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp.sec = (uint32_t)floor(imu_config_.timestamp);
-    ros_msg.header.stamp.nanosec = (uint32_t)round((imu_config_.timestamp - ros_msg.header.stamp.sec) * 1e9);
+    ros_msg.header.stamp.sec = (uint32_t)floor(imu_config_.timestamp + driver_start_timestamp_);
+    ros_msg.header.stamp.nanosec = (uint32_t)round((imu_config_.timestamp + driver_start_timestamp_- ros_msg.header.stamp.sec) * 1e9);
   } else {
     printf("does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
   }
