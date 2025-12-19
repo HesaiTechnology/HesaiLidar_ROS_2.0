@@ -100,6 +100,9 @@ public:
         YamlRead<std::string>(config["ros"], "ros_recv_correction_topic",  driver_param.input_param.ros_recv_correction_topic, NULL_TOPIC);  
         YamlRead<std::string>(config["ros"], "ros_send_imu_topic",         driver_param.input_param.ros_send_imu_topic, NULL_TOPIC);              
         
+        // custom driver params
+        YamlRead<bool>(       config["ros"], "real_time_timestamp",       driver_param.custom_param.real_time_timestamp, false);
+
         // car points filter options
         YamlRead<bool>(       config["ros"], "bubble_filter",             driver_param.custom_param.bubble_filter, false);
         YamlRead<float>(      config["ros"], "car_filter_distance",       driver_param.custom_param.car_filter_distance, 0.0);

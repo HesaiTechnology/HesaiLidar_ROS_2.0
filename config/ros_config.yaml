@@ -88,8 +88,11 @@ lidar:
       send_packet_ros: false                          # true: Send packets through ROS 
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
-        # car points filter options
-      bubble_filter: true                            # Enable bubble filter
+
+      # custom_params
+      real_time_timestamp: true                       # true: use mchine real time as point cloud timestamp
+
+      bubble_filter: false                            # Enable bubble filter
       car_filter_distance: 2.0                        # Car filter distance for bubble filter
       cube_filter: false                              # Enable cube filter
       car_filter_distance_x: 0.0                      # Car filter distance in x direction for cube filter
