@@ -99,6 +99,8 @@ protected:
   std::shared_ptr<ros::NodeHandle> nh_;
   ros::Publisher pub_;
   std::string frame_id_;
+  // store driver parameters including custom fields (bubble/cube filters)
+  hesai::lidar::CustomDriverParam driver_param;
   // publish packet 
   ros::Publisher pkt_pub_;
   // packet sub
@@ -117,8 +119,6 @@ protected:
 
 inline void SourceDriver::Init(const YAML::Node& config)
 {
-  
-  DriverParam driver_param;
   DriveYamlParam yaml_param;
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
@@ -155,11 +155,19 @@ inline void SourceDriver::Init(const YAML::Node& config)
     pkt_pub_ = nh_->advertise<hesai_ros_driver::UdpFrame>(driver_param.input_param.ros_send_packet_topic, 10);
   }
 
+<<<<<<< HEAD
+  if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
+    pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::RecievePacket, this);
+
+    if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {
+      crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::RecieveCorrection, this);
+=======
   if (driver_param.input_param.source_type == DATA_FROM_ROS_PACKET) {
     pkt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_packet_topic, 100, &SourceDriver::ReceivePacket, this);
 
     if (driver_param.input_param.ros_recv_correction_topic != NULL_TOPIC) {
       crt_sub_ = nh_->subscribe(driver_param.input_param.ros_recv_correction_topic, 10, &SourceDriver::ReceiveCorrection, this);
+>>>>>>> upstream/master
     }
 
     driver_param.decoder_param.enable_udp_thread = false;

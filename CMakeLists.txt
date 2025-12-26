@@ -16,11 +16,15 @@ configure_file(
 set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
 # set(FIND_CUDA ON CACHE BOOL "Find CUDA")
 
-if(FIND_CUDA)
-    find_package(CUDA )
-endif()
+# uncomment to use gpu acceleration
+find_package(CUDA QUIET)  
+
 if(${CUDA_FOUND})
-  	project(CommonModules LANGUAGES CXX CUDA)
+  message(=============================================================)
+  message("-- CUDA_FOUND is True")
+  message(=============================================================)
+
+  project(CommonModules LANGUAGES CXX CUDA)
 	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
 	set(CUDA_SEPARABLE_COMPILATION ON)
 	include_directories(${CUDA_INCLUDE_DIRS})
@@ -30,9 +34,11 @@ if(${CUDA_FOUND})
 
   add_definitions(-DUSE_CUDA)
   set(FIND_CUDA ON CACHE BOOL "Use Cuda")
-else(${CUDA_FOUND})
-	MESSAGE(STATUS "cuda not found!")
-endif(${CUDA_FOUND})
+else()
+  message(=============================================================)
+  message("-- CUDA NOT FOUND")
+  message(=============================================================)
+endif()
 
 #=======================================
 # Custom Point Type (XYZI, XYZIRT)
@@ -262,6 +268,7 @@ endif()
   install(DIRECTORY
           launch
           rviz
+          config
           DESTINATION share/${PROJECT_NAME})
 
   ament_package()

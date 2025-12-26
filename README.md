@@ -34,7 +34,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 
 ### Clone
 
-    git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
+    git clone --recurse-submodules https://github.com/leonardonels/HesaiLidar_ROS_2.0.git
     
 
 ### Compile and run
@@ -52,7 +52,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
     Create an `src` folder, copy the source code of the ros driver into it, and then run the following command:
         
         colcon build --symlink-install
-        . install/local_setup.bash
+        . install/setup.bash
 
     For ROS2-Dashing     
 
@@ -60,14 +60,15 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
         
     For other ROS2 version
 
-        ros2 launch hesai_ros_driver start.py
+        ros2 launch hesai_ros_driver hesai.launch.py
 
-### Introduction to the configuration file `config.yaml` parameters
+### Introduction to the configuration file `ros_config.yaml` parameters
 
 ```yaml
+rviz2: false                                          # Set to true to also open rviz2 with lidar_points
 lidar:
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
@@ -191,7 +192,7 @@ According to the configuration of a single lidar, multiple drivers can be create
 ```yaml
 lidar:
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
@@ -278,7 +279,7 @@ lidar:
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
   - driver:
-      use_gpu: false
+      use_gpu: true
       source_type: 1                                  # The type of data source, 1: real-time lidar connection, 2: pcap, 3: packet rosbag, 4: serial    
       # Depending on the type of source_type, fill in the corresponding configuration block (lidar_udp_type, pcap_type, serial_type)
       lidar_udp_type:
