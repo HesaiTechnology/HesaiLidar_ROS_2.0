@@ -235,6 +235,8 @@ endif($ENV{ROS_VERSION} MATCHES "1")
 
 if($ENV{ROS_VERSION} MATCHES "2")
   find_package(ament_index_cpp REQUIRED)
+  find_package(rclcpp_components REQUIRED)
+  
   ament_target_dependencies(hesai_ros_driver_node 
   "ament_index_cpp"
   "rcl_interfaces"
@@ -252,10 +254,55 @@ else()
   rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
 endif()
 
+  # Composable Node Library
+  add_library(hesai_ros_driver_composable_node_lib SHARED
+    src/manager/source_driver_ros2_composable.cc
+  )
+  
+  target_compile_definitions(hesai_ros_driver_composable_node_lib PRIVATE
+    -DRUN_IN_ROS_WORKSPACE
+  )
+  
+  target_link_libraries(hesai_ros_driver_composable_node_lib
+    ${YAML_CPP_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${LIB_TARGETS}
+  )
+  
+  target_include_directories(hesai_ros_driver_composable_node_lib PRIVATE
+    src/manager
+    src/msg/ros_msg
+    src/msg/rs_msg
+    src/utility
+    ${CMAKE_CURRENT_BINARY_DIR}
+  )
+  
+  ament_target_dependencies(hesai_ros_driver_composable_node_lib
+    "rclcpp"
+    "rclcpp_components"
+    "ament_index_cpp"
+    "std_msgs"
+    "sensor_msgs"
+  )
+  
+  if(($ENV{ROS_DISTRO} STREQUAL "kilted") OR ($ENV{ROS_DISTRO} STREQUAL "jazzy") OR ($ENV{ROS_DISTRO} STREQUAL "humble"))
+    rosidl_get_typesupport_target(cpp_typesupport_target_composable "${PROJECT_NAME}" "rosidl_typesupport_cpp")
+    target_link_libraries(hesai_ros_driver_composable_node_lib "${cpp_typesupport_target_composable}")
+  else()
+    rosidl_target_interfaces(hesai_ros_driver_composable_node_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  endif()
+  
+  rclcpp_components_register_node(hesai_ros_driver_composable_node_lib
+    PLUGIN "HesaiComposableNode"
+    EXECUTABLE hesai_ros_driver_node_composable
+  )
+
   install(TARGETS
           hesai_ros_driver_node
+          hesai_ros_driver_node_composable
           DESTINATION lib/${PROJECT_NAME})
   install(TARGETS
+          hesai_ros_driver_composable_node_lib
           ${LIB_TARGETS}
           DESTINATION lib)
 
@@ -267,5 +314,3 @@ endif()
   ament_package()
 
 endif($ENV{ROS_VERSION} MATCHES "2")
-
-
