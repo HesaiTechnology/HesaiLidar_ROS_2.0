@@ -10,6 +10,14 @@ def generate_launch_description():
         'config',
         'ros_config.yaml'
         )
+    
+    hesai_driver_node = Node(
+        name='hesai_driver_node',
+        package='hesai_ros_driver',
+        executable='hesai_ros_driver_node',
+        output='screen',
+        parameters=[{'config_path': config_dir}]
+    )
 
     with open(config_dir, 'r') as f:
         rviz2 = f.readline().strip()
@@ -21,18 +29,12 @@ def generate_launch_description():
             executable='rviz2',
             arguments=['-d',rviz_config]
         )
+    
+        return LaunchDescription([
+            rviz_node,
+            hesai_driver_node
+        ])
     else:
-        rviz_node = None
-    
-    hesai_driver_node = Node(
-        name='hesai_driver_node',
-        package='hesai_ros_driver',
-        executable='hesai_ros_driver_node',
-        output='screen',
-        parameters=[{'config_path': config_dir}]
-    )
-    
-    return LaunchDescription([
-        rviz_node,
-        hesai_driver_node
-    ])
+        return LaunchDescription([
+            hesai_driver_node
+        ])
