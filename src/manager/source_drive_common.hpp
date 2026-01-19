@@ -1,13 +1,15 @@
 #pragma once
 #include "utility/yaml_reader.hpp"
 #include "hesai_lidar_sdk.hpp"
+// include custom driver param that extends the SDK DriverParam
+#include "driver/custom_driver_param.h"
 class DriveYamlParam
 {
 public:
     DriveYamlParam() {};
     ~DriveYamlParam() {};
 
-    bool GetDriveYamlParam(const YAML::Node& config, DriverParam &driver_param)
+    bool GetDriveYamlParam(const YAML::Node& config, hesai::lidar::CustomDriverParam &driver_param)
     {
         YAML::Node driver_config = YamlSubNodeAbort(config, "driver");
         int source_type;
@@ -97,6 +99,17 @@ public:
         YamlRead<std::string>(config["ros"], "ros_send_firetime_topic",    driver_param.input_param.ros_send_firetime_topic, NULL_TOPIC);
         YamlRead<std::string>(config["ros"], "ros_recv_correction_topic",  driver_param.input_param.ros_recv_correction_topic, NULL_TOPIC);  
         YamlRead<std::string>(config["ros"], "ros_send_imu_topic",         driver_param.input_param.ros_send_imu_topic, NULL_TOPIC);              
+        
+        // custom driver params
+        YamlRead<bool>(       config["ros"], "real_time_timestamp",       driver_param.custom_param.real_time_timestamp, false);
+
+        // car points filter options
+        YamlRead<bool>(       config["ros"], "bubble_filter",             driver_param.custom_param.bubble_filter, false);
+        YamlRead<float>(      config["ros"], "car_filter_distance",       driver_param.custom_param.car_filter_distance, 0.0);
+        YamlRead<bool>(       config["ros"], "cube_filter",               driver_param.custom_param.cube_filter, false);
+        YamlRead<float>(      config["ros"], "car_filter_distance_x",     driver_param.custom_param.car_filter_distance_x, 0.0);
+        YamlRead<float>(      config["ros"], "car_filter_distance_y",     driver_param.custom_param.car_filter_distance_y, 0.0);
+        YamlRead<float>(      config["ros"], "car_filter_distance_z",     driver_param.custom_param.car_filter_distance_z, 0.0);
         return true;
     }
 
