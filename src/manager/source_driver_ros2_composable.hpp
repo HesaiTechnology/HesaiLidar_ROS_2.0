@@ -32,6 +32,25 @@
 #include "source_driver_ros2.hpp"
 #include <rclcpp_components/register_node_macro.hpp>
 
+/**
+ * @brief Structure to hold launch parameters that override config file values
+ * 
+ * These parameters are provided via ROS2 launch file instead of the YAML config
+ */
+struct LaunchOverrideParams
+{
+  std::string ros_frame_id;
+  std::string ros_send_point_cloud_topic;
+  std::string device_ip_address;
+  uint16_t udp_port;
+  uint16_t ptc_port;
+  bool has_ros_frame_id = false;
+  bool has_ros_send_point_cloud_topic = false;
+  bool has_device_ip_address = false;
+  bool has_udp_port = false;
+  bool has_ptc_port = false;
+};
+
 class HesaiComposableNode : public rclcpp::Node
 {
 public:
@@ -39,5 +58,11 @@ public:
   virtual ~HesaiComposableNode();
 
 private:
+  /**
+   * @brief Declares and retrieves ROS2 parameters that override config file values
+   * @return LaunchOverrideParams structure with the retrieved parameters
+   */
+  LaunchOverrideParams get_launch_override_params();
+
   std::vector<std::shared_ptr<SourceDriver>> sources_driver_;
 };
