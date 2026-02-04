@@ -124,7 +124,11 @@ inline void SourceDriver::Init(const YAML::Node& config)
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
 
-  node_ptr_.reset(new rclcpp::Node("hesai_ros_driver_node"));
+  // Only create a new node if one hasn't been set (e.g., from a parent composable node)
+  if (!node_ptr_) {
+    node_ptr_.reset(new rclcpp::Node("hesai_ros_driver_node"));
+  }
+  
   if (driver_param.input_param.send_point_cloud_ros) {
     pub_ = node_ptr_->create_publisher<sensor_msgs::msg::PointCloud2>(driver_param.input_param.ros_send_point_topic, 10);
   }

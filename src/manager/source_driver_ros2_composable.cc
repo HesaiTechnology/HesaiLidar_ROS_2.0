@@ -143,13 +143,27 @@ HesaiComposableNode::HesaiComposableNode(const rclcpp::NodeOptions& options)
         single_lidar_config["driver"]["lidar_udp_type"]["ptc_port"] = override_params.ptc_port;
       }
       
-      auto source = std::make_shared<SourceDriver>(SourceType::DATA_FROM_LIDAR);
-      source->Init(single_lidar_config);
-      source->Start();
-      sources_driver_.emplace_back(source);
+      // Only initialize the first lidar (i=0) to avoid duplicate nodes
+      // Multiple lidars in config should be handled by launching multiple instances
+      if (i == 0) {
+        auto source = std::make_shared<SourceDriver>(SourceType::DATA_FROM_LIDAR);
+        // Set node_ptr_ to prevent SourceDriver::Init() from creating a new node
+        // Use a custom deleter that does nothing to prevent deletion of this composable node
+        source->node_ptr_ = std::shared_ptr<rclcpp::Node>(
+          this, 
+          [](rclcpp::Node*) {}  // Custom deleter - does nothing
+        );
+        source->Init(single_lidar_config);
+        source->Start();
+        sources_driver_.emplace_back(source);
+      }
     }
     
     RCLCPP_INFO(this->get_logger(), "Initialized %zu lidar source(s)", sources_driver_.size());
+    
+    if (sources_driver_.size() == 0) {
+      RCLCPP_WARN(this->get_logger(), "No lidar sources initialized. Check config file.");
+    }
   } catch (const std::exception& e) {
     RCLCPP_ERROR(this->get_logger(), "Failed to initialize Hesai driver: %s", e.what());
     throw;
