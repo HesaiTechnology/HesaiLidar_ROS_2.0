@@ -48,7 +48,8 @@
 #include <boost/thread.hpp>
 #include "source_drive_common.hpp"
 
-#include "sahm/sahm.hpp"
+// BARQ (Burst Access Reader Queue) is a lightweight shared memory library for high-throughput, low-latency data exchange between processes.
+#include "barq/barq.hpp"
 
 class SourceDriver
 {
@@ -123,10 +124,10 @@ protected:
   //spin thread while Receive data from ROS topic
   boost::thread* subscription_spin_thread_;
 
-  // SAHM writer for zero-copy packet sending
-  std::unique_ptr<SAHM::DirectWriter> sahm_writer_;
-  bool sahm_enabled_ = false;
-  size_t sahm_max_size_ = 0;
+  // BARQ writer for shared memory publishing of point clouds (optional, alongside ROS2 topics)
+  std::unique_ptr<BARQ::Writer> barq_writer_;
+  bool barq_enabled_ = false;
+  size_t barq_max_size_ = 0;
 };
 
 inline void SourceDriver::Init(const YAML::Node& config)
@@ -214,29 +215,27 @@ inline void SourceDriver::Init(const YAML::Node& config)
     exit(-1);
   }
 
-  // SAHM shared memory publisher (optional, alongside ROS2)
-  if (driver_param.input_param.send_point_cloud_ros) {
-    // Estimate max point cloud size:
-    // Max points for your LiDAR model × point_step (26 bytes for XYZIRF64)
-    // 128 beams × 1800 azimuth steps = ~230400 points worst case
-    const size_t kMaxPoints = 300000;
-    const size_t kPointStep = sizeof(float) * 4 + sizeof(uint16_t) + sizeof(double);
-    const size_t kHeaderBytes = sizeof(uint32_t) * 3 + sizeof(double);
-    sahm_max_size_ = kMaxPoints * kPointStep + kHeaderBytes + 512;
-    RCLCPP_INFO(node_ptr_->get_logger(), "[SAHM] writer sahm_max_size_=%zu", sahm_max_size_);
+  // exploit ROS2 parameters to configure BARQ shared memory publishing of point clouds (optional, alongside ROS2 topics)
 
-    sahm_writer_ = std::make_unique<SAHM::DirectWriter>("/hesai_pointcloud", sahm_max_size_);
+  // Estimate max point cloud size:
+  // Max points for your LiDAR model × point_step (26 bytes for XYZIRF64)
+  // 128 beams × 1800 azimuth steps = ~230400 points worst case
+  const size_t kMaxPoints = 300000;
+  const size_t kPointStep = sizeof(float) * 4 
+                          + sizeof(uint16_t) 
+                          + sizeof(double);
+  const size_t kHeaderBytes = sizeof(uint32_t) * 3 
+                            + sizeof(double);
+  barq_max_size_ = kMaxPoints * kPointStep + kHeaderBytes + 512;
 
-    if (sahm_writer_->init()) {
-      sahm_enabled_ = true;
-      RCLCPP_INFO(node_ptr_->get_logger(),
-                  "[SAHM] SharedMem writer initialized on /hesai_pointcloud (%zu MB)",
-                  sahm_max_size_ / (1024 * 1024));
-    } else {
-      RCLCPP_WARN(node_ptr_->get_logger(),
-                  "[SAHM] Failed to initialize shared memory writer — falling back to ROS2 only");
-      sahm_writer_.reset();
-    }
+  barq_writer_ = std::make_unique<BARQ::Writer>("/hesai_pointcloud", barq_max_size_, false);  // false for no huge pages, adjust as needed
+
+  if (!barq_writer_->init()) {
+    std::cout << "Failed to initialize BARQ writer for /hesai_pointcloud, falling back to ROS2 topics only." << std::endl;
+    barq_writer_.reset();
+  } else {
+    barq_enabled_ = true;
+    std::cout << "BARQ writer initialized for /hesai_pointcloud with max size " << barq_max_size_ << " bytes." << std::endl;
   }
 }
 
@@ -254,10 +253,10 @@ inline void SourceDriver::Stop()
 {
   driver_ptr_->Stop();
 
-  if (sahm_writer_) {
-    sahm_writer_->destroy();
-    sahm_writer_.reset();
-    sahm_enabled_ = false;
+  if (barq_writer_) {
+    barq_writer_->destroy();
+    barq_writer_.reset();
+    barq_enabled_ = false;
   }
 }
 
@@ -268,14 +267,11 @@ inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
 {
-  // separate function to convert to ROS message for SAHM
-  // pub_->publish(ToRosMsg(msg, frame_id_));
-
   sensor_msgs::msg::PointCloud2 ros_msg = ToRosMsg(msg, frame_id_);
-  pub_->publish(ros_msg);
+  if (driver_param.input_param.send_point_cloud_ros) pub_->publish(ros_msg);
 
-  // Publish via SAHM shared memory if enabled
-  if (sahm_enabled_ && sahm_writer_) {
+  // Publish via BARQ shared memory if enabled
+  if (barq_enabled_ && barq_writer_) {
     // ros_msg.data already contains the packed binary point data
     // We prepend a small fixed header so readers know width/height/point_step
     // without needing to parse a full ROS2 PointCloud2 message.
@@ -290,7 +286,7 @@ inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIR
     const size_t header_bytes = sizeof(uint32_t) * 3 + sizeof(double);
     const size_t payload_size = header_bytes + ros_msg.data.size();
 
-    if (payload_size <= sahm_max_size_) {
+    if (payload_size <= barq_max_size_) {
       // Use a small stack buffer for the header, then write in one call
       std::vector<uint8_t> shm_buf(payload_size);
 
@@ -307,17 +303,9 @@ inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIR
       std::memcpy(shm_buf.data() + off, &ts, sizeof(ts)); off += sizeof(ts);
       std::memcpy(shm_buf.data() + off, ros_msg.data.data(), ros_msg.data.size());
 
-      int readers = sahm_writer_->write(shm_buf.data(), payload_size);
-
-      // Optional: log when no reader is consuming (not an error)
-      if (readers == 0) {
-      RCLCPP_WARN(node_ptr_->get_logger(), "[SAHM] No active readers on /hesai_pointcloud");
-      }
+      int readers = barq_writer_->write(shm_buf.data(), payload_size);
     } else {
-      RCLCPP_WARN_ONCE(node_ptr_->get_logger(),
-                       "[SAHM] Point cloud payload (%zu bytes) exceeds sahm_max_size_ (%zu) — "
-                       "increase kMaxPoints in Init()",
-                       payload_size, sahm_max_size_);
+      std::cout << "Point cloud payload (" << payload_size << " bytes) exceeds BARQ max size (" << barq_max_size_ << " bytes), skipping shared memory publish." << std::endl;
     }
   }
 }
