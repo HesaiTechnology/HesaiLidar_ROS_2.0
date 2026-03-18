@@ -143,7 +143,6 @@ bool Writer::init() {
     
     // Initialize header
     header_ = static_cast<Header*>(ptr_);
-    std::memset(header_, 0, sizeof(Header));
     
     header_->magic = MAGIC;
     header_->version = VERSION;
