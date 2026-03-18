@@ -197,6 +197,7 @@ if(${CUDA_FOUND})
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cu
     src/manager/node_manager.cc
+    src/sahm/sahm.cpp
     )
   set(LIB_TARGETS
     ${LIB_TARGETS}
@@ -206,15 +207,24 @@ else()
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cc
     src/manager/node_manager.cc
+    src/sahm/sahm.cpp
     )
 endif()
 target_link_libraries(hesai_ros_driver_node                   
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
             ${LIB_TARGETS}
-)              
+            rt
+            pthread 
+)    
+
+target_compile_options(hesai_ros_driver_node PRIVATE
+  -Wno-class-memaccess
+  -Wno-unused-variable
+) 
 
 target_include_directories(hesai_ros_driver_node PRIVATE
+  src/sahm
   src/manager
   src/msg/ros_msg
   src/msg/rs_msg
@@ -235,7 +245,6 @@ if($ENV{ROS_VERSION} MATCHES "1")
           config
           DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 endif($ENV{ROS_VERSION} MATCHES "1")
-
 
 #Ros2#
 

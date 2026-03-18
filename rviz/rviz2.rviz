@@ -71,9 +71,22 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /lidar_points
+        Value: /logger/hesai/pointcloud
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Class: rviz_default_plugins/Marker
+      Enabled: true
+      Name: Marker
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clusters
       Value: true
   Enabled: true
   Global Options:
@@ -128,18 +141,18 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.3094900846481323
-        Y: 6.032918930053711
-        Z: -1.6452505588531494
+        X: -0.05513286218047142
+        Y: 1.8682973384857178
+        Z: 2.031489133834839
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7053972482681274
+      Pitch: 0.5753973126411438
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.2622175216674805
+      Yaw: 2.4472172260284424
     Saved: ~
 Window Geometry:
   Displays:
