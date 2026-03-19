@@ -275,8 +275,8 @@ inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
 {
   sensor_msgs::msg::PointCloud2 ros_msg = ToRosMsg(msg, frame_id_);
-    if (driver_param.custom_param.latency_testing) {
-    // For latency testing, we set the timestamp to the current time when the point cloud is received
+  // For latency testing, we set the timestamp to the current time when the point cloud is received
+  if (driver_param.custom_param.latency_testing) {
     auto now = rclcpp::Clock(RCL_ROS_TIME).now();
     ros_msg.header.stamp = now;
   }
@@ -309,6 +309,7 @@ inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIR
                   + ros_msg.header.stamp.nanosec * 1e-9;
 
       size_t off = 0;
+
       std::memcpy(shm_buf.data() + off, &w,  sizeof(w));  off += sizeof(w);
       std::memcpy(shm_buf.data() + off, &h,  sizeof(h));  off += sizeof(h);
       std::memcpy(shm_buf.data() + off, &ps, sizeof(ps)); off += sizeof(ps);
