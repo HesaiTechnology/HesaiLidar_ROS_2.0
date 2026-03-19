@@ -12,6 +12,7 @@ namespace lidar {
 typedef struct CustomParam
 {
   bool real_time_timestamp = false;
+  bool latency_testing = false;
   bool BARQ_enable = false;
   bool bubble_filter = false;
   float car_filter_distance = 0.0;

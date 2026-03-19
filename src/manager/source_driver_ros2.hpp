@@ -275,6 +275,11 @@ inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
 {
   sensor_msgs::msg::PointCloud2 ros_msg = ToRosMsg(msg, frame_id_);
+    if (driver_param.custom_param.latency_testing) {
+    // For latency testing, we set the timestamp to the current time when the point cloud is received
+    auto now = rclcpp::Clock(RCL_ROS_TIME).now();
+    ros_msg.header.stamp = now;
+  }
   if (driver_param.input_param.send_point_cloud_ros) pub_->publish(ros_msg);
 
   // Publish via BARQ shared memory if enabled

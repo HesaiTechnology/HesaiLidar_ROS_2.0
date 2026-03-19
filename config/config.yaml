@@ -92,6 +92,7 @@ lidar:
 
       # custom_params
       real_time_timestamp: true                       # true: use mchine real time as point cloud timestamp
+      latency_testing: true                            # true: use this for latency testing, point cloud timestamp is the time when the point cloud is published
 
       # BARQ params
       BARQ_enable: true                             # Enable BARQ
