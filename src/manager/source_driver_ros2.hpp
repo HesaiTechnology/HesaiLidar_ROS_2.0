@@ -215,27 +215,34 @@ inline void SourceDriver::Init(const YAML::Node& config)
     exit(-1);
   }
 
-  // exploit ROS2 parameters to configure BARQ shared memory publishing of point clouds (optional, alongside ROS2 topics)
 
-  // Estimate max point cloud size:
-  // Max points for your LiDAR model × point_step (26 bytes for XYZIRF64)
-  // 128 beams × 1800 azimuth steps = ~230400 points worst case
-  const size_t kMaxPoints = 300000;
-  const size_t kPointStep = sizeof(float) * 4 
-                          + sizeof(uint16_t) 
-                          + sizeof(double);
-  const size_t kHeaderBytes = sizeof(uint32_t) * 3 
+  if (driver_param.custom_param.BARQ_enable) {
+    RCLCPP_INFO(node_ptr_->get_logger(), "BARQ shared memory publishing for point clouds is enabled.");
+
+    // exploit ROS2 parameters to configure BARQ shared memory publishing of point clouds (optional, alongside ROS2 topics)
+
+    // Estimate max point cloud size:
+    // Max points for your LiDAR model × point_step (26 bytes for XYZIRF64)
+    // 128 beams × 1800 azimuth steps = ~230400 points worst case
+    const size_t kMaxPoints = 300000;
+    const size_t kPointStep = sizeof(float) * 4 
+                            + sizeof(uint16_t) 
                             + sizeof(double);
-  barq_max_size_ = kMaxPoints * kPointStep + kHeaderBytes + 512;
+    const size_t kHeaderBytes = sizeof(uint32_t) * 3 
+                              + sizeof(double);
+    barq_max_size_ = kMaxPoints * kPointStep + kHeaderBytes + 512;
 
-  barq_writer_ = std::make_unique<BARQ::Writer>("/hesai_pointcloud", barq_max_size_, false);  // false for no huge pages, adjust as needed
+    barq_writer_ = std::make_unique<BARQ::Writer>("/hesai_pointcloud", barq_max_size_, false);  // false for no huge pages, adjust as needed
 
-  if (!barq_writer_->init()) {
-    std::cout << "Failed to initialize BARQ writer for /hesai_pointcloud, falling back to ROS2 topics only." << std::endl;
-    barq_writer_.reset();
+    if (!barq_writer_->init()) {
+      RCLCPP_ERROR(node_ptr_->get_logger(), "Failed to initialize BARQ writer for /hesai_pointcloud, falling back to ROS2 topics only.");
+      barq_writer_.reset();
+    } else {
+      barq_enabled_ = true;
+      RCLCPP_INFO(node_ptr_->get_logger(), "BARQ writer initialized for /hesai_pointcloud with max size %zu bytes.", barq_max_size_);
+    }
   } else {
-    barq_enabled_ = true;
-    std::cout << "BARQ writer initialized for /hesai_pointcloud with max size " << barq_max_size_ << " bytes." << std::endl;
+    RCLCPP_INFO(node_ptr_->get_logger(), "BARQ shared memory publishing for point clouds is disabled.");
   }
 }
 

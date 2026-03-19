@@ -102,6 +102,7 @@ public:
         
         // custom driver params
         YamlRead<bool>(       config["ros"], "real_time_timestamp",       driver_param.custom_param.real_time_timestamp, false);
+        YamlRead<bool>(       config["ros"], "BARQ_enable",               driver_param.custom_param.BARQ_enable, false);
 
         // car points filter options
         YamlRead<bool>(       config["ros"], "bubble_filter",             driver_param.custom_param.bubble_filter, false);
