@@ -48,6 +48,9 @@
 #include <boost/thread.hpp>
 #include "source_drive_common.hpp"
 
+// BARQ (Burst Access Reader Queue) is a lightweight shared memory library for high-throughput, low-latency data exchange between processes.
+#include "barq/barq.hpp"
+
 class SourceDriver
 {
 public:
@@ -103,6 +106,10 @@ protected:
   // Convert Angular Velocity from degree/s to radian/s
   double From_degs_To_rads(double degree);
   std::string frame_id_;
+  // store the driver start time when real_time_timestamp is true
+  double driver_start_timestamp_;
+  // store driver parameters including custom fields (bubble/cube filters)
+  hesai::lidar::CustomDriverParam driver_param;
 
   rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr crt_sub_;
   rclcpp::Subscription<hesai_ros_driver::msg::UdpFrame>::SharedPtr pkt_sub_;
@@ -116,13 +123,26 @@ protected:
 
   //spin thread while Receive data from ROS topic
   boost::thread* subscription_spin_thread_;
+
+  // BARQ writer for shared memory publishing of point clouds (optional, alongside ROS2 topics)
+  std::unique_ptr<BARQ::Writer> barq_writer_;
+  bool barq_enabled_ = false;
+  size_t barq_max_size_ = 0;
 };
+
 inline void SourceDriver::Init(const YAML::Node& config)
 {
-  DriverParam driver_param;
   DriveYamlParam yaml_param;
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
+
+  if (driver_param.custom_param.real_time_timestamp)
+  {
+    rclcpp::Clock clock(RCL_ROS_TIME);
+    driver_start_timestamp_ = clock.now().seconds();
+  }else{
+    driver_start_timestamp_ = 0.0;
+  }
 
   node_ptr_.reset(new rclcpp::Node("hesai_ros_driver_node"));
   if (driver_param.input_param.send_point_cloud_ros) {
@@ -194,6 +214,36 @@ inline void SourceDriver::Init(const YAML::Node& config)
     std::cout << "Driver Initialize Error...." << std::endl;
     exit(-1);
   }
+
+
+  if (driver_param.custom_param.BARQ_enable) {
+    RCLCPP_INFO(node_ptr_->get_logger(), "BARQ shared memory publishing for point clouds is enabled.");
+
+    // exploit ROS2 parameters to configure BARQ shared memory publishing of point clouds (optional, alongside ROS2 topics)
+
+    // Estimate max point cloud size:
+    // Max points for your LiDAR model × point_step (26 bytes for XYZIRF64)
+    // 128 beams × 1800 azimuth steps = ~230400 points worst case
+    const size_t kMaxPoints = 300000;
+    const size_t kPointStep = sizeof(float) * 4 
+                            + sizeof(uint16_t) 
+                            + sizeof(double);
+    const size_t kHeaderBytes = sizeof(uint32_t) * 3 
+                              + sizeof(double);
+    barq_max_size_ = kMaxPoints * kPointStep + kHeaderBytes + 512;
+
+    barq_writer_ = std::make_unique<BARQ::Writer>("/hesai_pointcloud", barq_max_size_, false);  // false for no huge pages, adjust as needed
+
+    if (!barq_writer_->init()) {
+      RCLCPP_ERROR(node_ptr_->get_logger(), "Failed to initialize BARQ writer for /hesai_pointcloud, falling back to ROS2 topics only.");
+      barq_writer_.reset();
+    } else {
+      barq_enabled_ = true;
+      RCLCPP_INFO(node_ptr_->get_logger(), "BARQ writer initialized for /hesai_pointcloud with max size %zu bytes.", barq_max_size_);
+    }
+  } else {
+    RCLCPP_INFO(node_ptr_->get_logger(), "BARQ shared memory publishing for point clouds is disabled.");
+  }
 }
 
 inline void SourceDriver::Start()
@@ -209,6 +259,12 @@ inline SourceDriver::~SourceDriver()
 inline void SourceDriver::Stop()
 {
   driver_ptr_->Stop();
+
+  if (barq_writer_) {
+    barq_writer_->destroy();
+    barq_writer_.reset();
+    barq_enabled_ = false;
+  }
 }
 
 inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
@@ -218,7 +274,53 @@ inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
 {
-  pub_->publish(ToRosMsg(msg, frame_id_));
+  sensor_msgs::msg::PointCloud2 ros_msg = ToRosMsg(msg, frame_id_);
+  // For latency testing, we set the timestamp to the current time when the point cloud is received
+  if (driver_param.custom_param.latency_testing) {
+    auto now = rclcpp::Clock(RCL_ROS_TIME).now();
+    ros_msg.header.stamp = now;
+  }
+  if (driver_param.input_param.send_point_cloud_ros) pub_->publish(ros_msg);
+
+  // Publish via BARQ shared memory if enabled
+  if (barq_enabled_ && barq_writer_) {
+    // ros_msg.data already contains the packed binary point data
+    // We prepend a small fixed header so readers know width/height/point_step
+    // without needing to parse a full ROS2 PointCloud2 message.
+
+    // Layout written to SHM:
+    //  [0..3]   uint32  width         (number of valid points)
+    //  [4..7]   uint32  height        (always 1 for unorganized cloud)
+    //  [8..11]  uint32  point_step    (bytes per point, 26)
+    //  [12..19] double  stamp_sec     (header stamp as double seconds)
+    //  [20..]   uint8[] point data    (width * point_step bytes)
+
+    const size_t header_bytes = sizeof(uint32_t) * 3 + sizeof(double);
+    const size_t payload_size = header_bytes + ros_msg.data.size();
+
+    if (payload_size <= barq_max_size_) {
+      // Use a small stack buffer for the header, then write in one call
+      std::vector<uint8_t> shm_buf(payload_size);
+
+      uint32_t w  = ros_msg.width;
+      uint32_t h  = ros_msg.height;
+      uint32_t ps = ros_msg.point_step;
+      double   ts = ros_msg.header.stamp.sec
+                  + ros_msg.header.stamp.nanosec * 1e-9;
+
+      size_t off = 0;
+
+      std::memcpy(shm_buf.data() + off, &w,  sizeof(w));  off += sizeof(w);
+      std::memcpy(shm_buf.data() + off, &h,  sizeof(h));  off += sizeof(h);
+      std::memcpy(shm_buf.data() + off, &ps, sizeof(ps)); off += sizeof(ps);
+      std::memcpy(shm_buf.data() + off, &ts, sizeof(ts)); off += sizeof(ts);
+      std::memcpy(shm_buf.data() + off, ros_msg.data.data(), ros_msg.data.size());
+
+      int readers = barq_writer_->write(shm_buf.data(), payload_size);
+    } else {
+      std::cout << "Point cloud payload (" << payload_size << " bytes) exceeds BARQ max size (" << barq_max_size_ << " bytes), skipping shared memory publish." << std::endl;
+    }
+  }
 }
 
 inline void SourceDriver::SendCorrection(const u8Array_t& msg)
@@ -256,11 +358,14 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   double frame_start_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_start_timestamp : frame.multi_frame_start_timestamp;
   double frame_end_timestamp = (frame.fParam.IsMultiFrameFrequency() == 0) ? frame.frame_end_timestamp : frame.multi_frame_end_timestamp;
   const char *prefix = (frame.fParam.IsMultiFrameFrequency() == 0) ? "raw" : "multi";
+  size_t n_real_points = frame.points_num;
   int fields = 6;
   ros_msg.fields.clear();
   ros_msg.fields.reserve(fields);
-  ros_msg.width = points_number; 
-  ros_msg.height = 1; 
+  //ros_msg.width = frame.points_num; 
+  //ros_msg.height = 1; 
+
+  RCLCPP_INFO(node_ptr_->get_logger(), "Converting to ROS PointCloud2 message with %u points", frame.points_num);
 
   int offset = 0;
   offset = addPointField(ros_msg, "x", 1, sensor_msgs::msg::PointField::FLOAT32, offset);
@@ -271,39 +376,68 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   offset = addPointField(ros_msg, "timestamp", 1, sensor_msgs::msg::PointField::FLOAT64, offset);
 
   ros_msg.point_step = offset;
-  ros_msg.row_step = ros_msg.width * ros_msg.point_step;
+  //ros_msg.row_step = ros_msg.width * ros_msg.point_step;
   ros_msg.is_dense = false;
-  ros_msg.data.resize(points_number * ros_msg.point_step);
-
+  ros_msg.data.resize(n_real_points * ros_msg.point_step);
+  //ros_msg.data.resize(frame.points_num * ros_msg.point_step);
+  
   sensor_msgs::PointCloud2Iterator<float> iter_x_(ros_msg, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y_(ros_msg, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z_(ros_msg, "z");
   sensor_msgs::PointCloud2Iterator<float> iter_intensity_(ros_msg, "intensity");
   sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring_(ros_msg, "ring");
   sensor_msgs::PointCloud2Iterator<double> iter_timestamp_(ros_msg, "timestamp");
-  for (size_t i = 0; i < points_number; i++)
+  for (size_t i = 0; i < frame.points_num; i++)
   {
+    if (!std::isfinite(frame.points[i].x) || !std::isfinite(frame.points[i].y) || !std::isfinite(frame.points[i].z)){
+      n_real_points--;
+      continue;
+    }
+
+    // filter out car body points if needed: bubble filter
+    if(driver_param.custom_param.bubble_filter){
+      double dist = std::sqrt((double)frame.points[i].x * frame.points[i].x + (double)frame.points[i].y * frame.points[i].y + (double)frame.points[i].z * frame.points[i].z);
+      if (dist <= driver_param.custom_param.car_filter_distance) {
+        n_real_points--;
+        continue;
+      }
+    }
+
+    // filter out car body points if needed: cube filter
+    if (driver_param.custom_param.cube_filter) {
+      if (std::abs(frame.points[i].x) <= driver_param.custom_param.car_filter_distance_x && std::abs(frame.points[i].y) <= driver_param.custom_param.car_filter_distance_y && std::abs(frame.points[i].z) <= driver_param.custom_param.car_filter_distance_z) {
+        n_real_points--;
+        continue;
+      }
+    }
+
+    // copy point data for better readability, could be optimized later...
     LidarPointXYZIRT point = pPoints[i];
     *iter_x_ = point.x;
     *iter_y_ = point.y;
     *iter_z_ = point.z;
     *iter_intensity_ = point.intensity;
     *iter_ring_ = point.ring;
-    *iter_timestamp_ = point.timestamp;
+    *iter_timestamp_ = point.timestamp + driver_start_timestamp_;
     ++iter_x_;
     ++iter_y_;
     ++iter_z_;
     ++iter_intensity_;
     ++iter_ring_;
-    ++iter_timestamp_;   
+    ++iter_timestamp_;
   }
+
+  ros_msg.width = n_real_points;
+  ros_msg.height = 1;
+  ros_msg.row_step = ros_msg.width * ros_msg.point_step;
+  ros_msg.data.resize(n_real_points * ros_msg.point_step);
   // printf("HesaiLidar Runing Status [standby mode:%u]  |  [speed:%u]\n", frame.work_mode, frame.spin_speed);
-  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
+  //printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
   std::cout.flush();
   auto sec = (uint64_t)floor(frame_start_timestamp);
   if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp.sec = (uint32_t)floor(frame_start_timestamp);
-    ros_msg.header.stamp.nanosec = (uint32_t)round((frame_start_timestamp - ros_msg.header.stamp.sec) * 1e9);
+    ros_msg.header.stamp.sec = (uint32_t)floor(frame_start_timestamp + driver_start_timestamp_);
+    ros_msg.header.stamp.nanosec = (uint32_t)round((frame_start_timestamp + driver_start_timestamp_ - ros_msg.header.stamp.sec) * 1e9);
   } else {
     printf("does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame_start_timestamp);
   }
@@ -366,8 +500,8 @@ inline sensor_msgs::msg::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_conf
   sensor_msgs::msg::Imu ros_msg;
   auto sec = (uint64_t)floor(imu_config_.timestamp);
   if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp.sec = (uint32_t)floor(imu_config_.timestamp);
-    ros_msg.header.stamp.nanosec = (uint32_t)round((imu_config_.timestamp - ros_msg.header.stamp.sec) * 1e9);
+    ros_msg.header.stamp.sec = (uint32_t)floor(imu_config_.timestamp + driver_start_timestamp_);
+    ros_msg.header.stamp.nanosec = (uint32_t)round((imu_config_.timestamp + driver_start_timestamp_- ros_msg.header.stamp.sec) * 1e9);
   } else {
     printf("does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
   }
@@ -399,6 +533,7 @@ inline void SourceDriver::ReceiveCorrection(const std_msgs::msg::UInt8MultiArray
     }
   }
 }
+
 inline double SourceDriver::From_g_To_ms2(double g)
 {
   return g * 9.80665;

@@ -16,11 +16,15 @@ configure_file(
 set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
 # set(FIND_CUDA ON CACHE BOOL "Find CUDA")
 
-if(FIND_CUDA)
-    find_package(CUDA )
-endif()
+# uncomment to use gpu acceleration
+find_package(CUDA QUIET)  
+
 if(${CUDA_FOUND})
-  	project(CommonModules LANGUAGES CXX CUDA)
+  message(=============================================================)
+  message("-- CUDA_FOUND is True")
+  message(=============================================================)
+
+  project(CommonModules LANGUAGES CXX CUDA)
 	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
 	set(CUDA_SEPARABLE_COMPILATION ON)
 	include_directories(${CUDA_INCLUDE_DIRS})
@@ -30,9 +34,11 @@ if(${CUDA_FOUND})
 
   add_definitions(-DUSE_CUDA)
   set(FIND_CUDA ON CACHE BOOL "Use Cuda")
-else(${CUDA_FOUND})
-	MESSAGE(STATUS "cuda not found!")
-endif(${CUDA_FOUND})
+else()
+  message(=============================================================)
+  message("-- CUDA NOT FOUND")
+  message(=============================================================)
+endif()
 
 #=======================================
 # Custom Point Type (XYZI, XYZIRT)
@@ -191,6 +197,7 @@ if(${CUDA_FOUND})
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cu
     src/manager/node_manager.cc
+    src/barq/barq.cpp
     )
   set(LIB_TARGETS
     ${LIB_TARGETS}
@@ -200,15 +207,24 @@ else()
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cc
     src/manager/node_manager.cc
+    src/barq/barq.cpp
     )
 endif()
 target_link_libraries(hesai_ros_driver_node                   
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
             ${LIB_TARGETS}
-)              
+            rt
+            pthread 
+)    
+
+target_compile_options(hesai_ros_driver_node PRIVATE
+  -Wno-class-memaccess
+  -Wno-unused-variable
+) 
 
 target_include_directories(hesai_ros_driver_node PRIVATE
+  src/barq
   src/manager
   src/msg/ros_msg
   src/msg/rs_msg
@@ -229,7 +245,6 @@ if($ENV{ROS_VERSION} MATCHES "1")
           config
           DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 endif($ENV{ROS_VERSION} MATCHES "1")
-
 
 #Ros2#
 
@@ -262,6 +277,7 @@ endif()
   install(DIRECTORY
           launch
           rviz
+          config
           DESTINATION share/${PROJECT_NAME})
 
   ament_package()
