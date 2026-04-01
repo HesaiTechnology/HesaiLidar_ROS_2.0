@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ros: [humble, jazzy, kilted, rolling]
+        ros: [melodic, foxy, humble, jazzy, kilted, rolling]
     name: ROS 2 ${{ matrix.ros }}
     container:
       image: polymathrobotics/ros:${{ matrix.ros }}-builder-ubuntu

@@ -221,7 +221,10 @@ target_include_directories(hesai_ros_driver_node PRIVATE
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
   target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
-  install(TARGETS hesai_ros_driver_node ${LIB_TARGETS}
+  # Catkin only supports installing targets declared in this CMakeLists.txt.
+  # SDK libraries are defined in the SDK subdirectory and are already linked
+  # into hesai_ros_driver_node, so install only the node target here.
+  install(TARGETS hesai_ros_driver_node
           RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
           LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
           ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
