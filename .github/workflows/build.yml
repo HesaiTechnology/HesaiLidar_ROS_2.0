@@ -26,7 +26,9 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y libyaml-cpp-dev
+          apt-get install -y \
+            libboost-all-dev \
+            libyaml-cpp-dev
 
       - id: ros_ci
         uses: ros-tooling/action-ros-ci@v0.4
