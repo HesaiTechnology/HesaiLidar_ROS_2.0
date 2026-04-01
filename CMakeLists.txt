@@ -204,7 +204,7 @@ else()
     src/manager/node_manager.cc
     )
 endif()
-target_link_libraries(hesai_ros_driver_node                   
+target_link_libraries(hesai_ros_driver_node PUBLIC
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
             ${LIB_TARGETS}
@@ -220,7 +220,7 @@ target_include_directories(hesai_ros_driver_node PRIVATE
 
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
-  target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
+  target_link_libraries(hesai_ros_driver_node PUBLIC ${ROS_LIBS})
   # Catkin only supports installing targets declared in this CMakeLists.txt.
   # SDK libraries are defined in the SDK subdirectory and are already linked
   # into hesai_ros_driver_node, so install only the node target here.
@@ -283,9 +283,9 @@ if($ENV{ROS_VERSION} MATCHES "2")
     endif()
   endif()
 
-if(($ENV{ROS_DISTRO} STREQUAL "kilted") OR ($ENV{ROS_DISTRO} STREQUAL "jazzy") OR ($ENV{ROS_DISTRO} STREQUAL "humble"))
+if(COMMAND rosidl_get_typesupport_target)
   rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
-  target_link_libraries(hesai_ros_driver_node "${cpp_typesupport_target}")
+  target_link_libraries(hesai_ros_driver_node PUBLIC "${cpp_typesupport_target}")
 else()
   rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
 endif()

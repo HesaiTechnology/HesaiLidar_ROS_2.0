@@ -15,8 +15,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ros: [melodic, foxy, humble, jazzy, kilted, rolling]
-    name: ROS 2 ${{ matrix.ros }}
+        include:
+          - ros: melodic
+            ros_major: 1
+          - ros: noetic
+            ros_major: 1
+          - ros: foxy
+            ros_major: 2
+          - ros: humble
+            ros_major: 2
+          - ros: jazzy
+            ros_major: 2
+          - ros: kilted
+            ros_major: 2
+          - ros: rolling
+            ros_major: 2
+    name: ROS ${{ matrix.ros }}
     container:
       image: polymathrobotics/ros:${{ matrix.ros }}-builder-ubuntu
 
@@ -30,7 +44,23 @@ jobs:
             libboost-all-dev \
             libyaml-cpp-dev
 
-      - id: ros_ci
+      - id: ros1_ci
+        if: ${{ matrix.ros_major == 1 }}
+        uses: ros-tooling/action-ros-ci@v0.4
+        with:
+          target-ros1-distro: ${{ matrix.ros }}
+          coverage-result: false
+          colcon-defaults: |
+            {
+              "build": {
+                "cmake-args": [
+                  "-DCMAKE_CXX_FLAGS=-Werror"
+                ]
+              }
+            }
+
+      - id: ros2_ci
+        if: ${{ matrix.ros_major == 2 }}
         uses: ros-tooling/action-ros-ci@v0.4
         with:
           target-ros2-distro: ${{ matrix.ros }}
@@ -44,9 +74,16 @@ jobs:
               }
             }
 
-      - name: Upload colcon logs
-        if: always()
+      - name: Upload ROS 1 colcon logs
+        if: ${{ always() && matrix.ros_major == 1 }}
         uses: actions/upload-artifact@v4
         with:
           name: colcon-logs-${{ matrix.ros }}
-          path: ${{ steps.ros_ci.outputs.ros-workspace-directory-name }}/log
+          path: ${{ steps.ros1_ci.outputs.ros-workspace-directory-name }}/log
+
+      - name: Upload ROS 2 colcon logs
+        if: ${{ always() && matrix.ros_major == 2 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: colcon-logs-${{ matrix.ros }}
+          path: ${{ steps.ros2_ci.outputs.ros-workspace-directory-name }}/log
