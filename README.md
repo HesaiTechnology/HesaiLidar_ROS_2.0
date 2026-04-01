@@ -365,3 +365,16 @@ lidar:
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
 ```
+# Note
+
+## Trigger GitHub Actions workflow
+
+The GitHub Actions workflow in `.github/workflows/build.yml` is triggered in the following cases:
+
+- Open or update a pull request that targets `master`
+- Push commits directly to `master`
+- Run it manually from the GitHub Actions page via `workflow_dispatch`
+
+For pull request testing, create a branch from `github/master`, push your changes to that branch, and then open a pull request to `master`. GitHub will start the workflow automatically after the pull request is created or updated.
+
+If you need to add or modify files under `.github/workflows/`, make sure the GitHub credential used for `git push` has the `workflow` permission; otherwise GitHub will reject the push. 

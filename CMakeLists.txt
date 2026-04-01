@@ -59,17 +59,15 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   add_definitions(-O3)
 endif()
 
-if(($ENV{ROS_DISTRO} STREQUAL "kilted"))
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-elseif(($ENV{ROS_DISTRO} STREQUAL "jazzy"))
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-elseif($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+if(($ENV{ROS_DISTRO} STREQUAL "rolling") OR
+   ($ENV{ROS_DISTRO} STREQUAL "kilted") OR
+   ($ENV{ROS_DISTRO} STREQUAL "jazzy") OR
+   ($ENV{ROS_DISTRO} STREQUAL "humble"))
+  set(CMAKE_CXX_STANDARD 17)
 else()
-add_definitions(-std=c++14)
+  set(CMAKE_CXX_STANDARD 14)
 endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-Wall)
 
@@ -127,11 +125,11 @@ if($ENV{ROS_VERSION} MATCHES "2")
 
     add_definitions(-DROS2_FOUND)
     include_directories(${rclcpp_INCLUDE_DIRS})
-    set(CMAKE_CXX_STANDARD 14)
-
     find_package(ament_cmake REQUIRED)
     find_package(sensor_msgs REQUIRED)
     find_package(std_msgs REQUIRED)  
+    find_package(rcutils REQUIRED)
+    find_package(rcl_interfaces REQUIRED)
     find_package(rclcpp_action REQUIRED)
     find_package(rosidl_typesupport_c REQUIRED) 
     find_package(rosidl_default_generators REQUIRED)
@@ -202,7 +200,7 @@ else()
     src/manager/node_manager.cc
     )
 endif()
-target_link_libraries(hesai_ros_driver_node                   
+target_link_libraries(hesai_ros_driver_node
             ${YAML_CPP_LIBRARIES}
             ${Boost_LIBRARIES}
             ${LIB_TARGETS}
@@ -218,8 +216,11 @@ target_include_directories(hesai_ros_driver_node PRIVATE
 
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
-  target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
-  install(TARGETS hesai_ros_driver_node ${LIB_TARGETS}
+  target_link_libraries(hesai_ros_driver_node ${ROS_LIBS})
+  # Catkin only supports installing targets declared in this CMakeLists.txt.
+  # SDK libraries are defined in the SDK subdirectory and are already linked
+  # into hesai_ros_driver_node, so install only the node target here.
+  install(TARGETS hesai_ros_driver_node
           RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
           LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
           ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
@@ -235,17 +236,50 @@ endif($ENV{ROS_VERSION} MATCHES "1")
 
 if($ENV{ROS_VERSION} MATCHES "2")
   find_package(ament_index_cpp REQUIRED)
-  ament_target_dependencies(hesai_ros_driver_node 
-  "ament_index_cpp"
-  "rcl_interfaces"
-  "rclcpp" 
-  "rcutils"
-  "std_msgs" 
-  "sensor_msgs" 
-  # "tf2_geometry_msgs"
+  set(ROS2_TARGET_DEPENDENCIES
+    ament_index_cpp
+    rcl_interfaces
+    rclcpp
+    rcutils
+    std_msgs
+    sensor_msgs
   )
 
-if(($ENV{ROS_DISTRO} STREQUAL "kilted") OR ($ENV{ROS_DISTRO} STREQUAL "jazzy") OR ($ENV{ROS_DISTRO} STREQUAL "humble"))
+  if(COMMAND ament_target_dependencies)
+    ament_target_dependencies(hesai_ros_driver_node
+      ${ROS2_TARGET_DEPENDENCIES}
+      rclcpp_action
+      # tf2_geometry_msgs
+    )
+  else()
+    foreach(dependency IN LISTS ROS2_TARGET_DEPENDENCIES)
+      if(DEFINED ${dependency}_TARGETS AND NOT "${${dependency}_TARGETS}" STREQUAL "")
+        target_link_libraries(hesai_ros_driver_node ${${dependency}_TARGETS})
+      elseif(TARGET ${dependency}::${dependency})
+        target_link_libraries(hesai_ros_driver_node ${dependency}::${dependency})
+      elseif(DEFINED ${dependency}_LIBRARIES AND NOT "${${dependency}_LIBRARIES}" STREQUAL "")
+        target_link_libraries(hesai_ros_driver_node ${${dependency}_LIBRARIES})
+      endif()
+
+      if(DEFINED ${dependency}_INCLUDE_DIRS AND NOT "${${dependency}_INCLUDE_DIRS}" STREQUAL "")
+        target_include_directories(hesai_ros_driver_node PUBLIC ${${dependency}_INCLUDE_DIRS})
+      endif()
+    endforeach()
+
+    if(DEFINED rclcpp_action_TARGETS AND NOT "${rclcpp_action_TARGETS}" STREQUAL "")
+      target_link_libraries(hesai_ros_driver_node ${rclcpp_action_TARGETS})
+    elseif(TARGET rclcpp_action::rclcpp_action)
+      target_link_libraries(hesai_ros_driver_node rclcpp_action::rclcpp_action)
+    elseif(DEFINED rclcpp_action_LIBRARIES AND NOT "${rclcpp_action_LIBRARIES}" STREQUAL "")
+      target_link_libraries(hesai_ros_driver_node ${rclcpp_action_LIBRARIES})
+    endif()
+
+    if(DEFINED rclcpp_action_INCLUDE_DIRS AND NOT "${rclcpp_action_INCLUDE_DIRS}" STREQUAL "")
+      target_include_directories(hesai_ros_driver_node PUBLIC ${rclcpp_action_INCLUDE_DIRS})
+    endif()
+  endif()
+
+if(COMMAND rosidl_get_typesupport_target)
   rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
   target_link_libraries(hesai_ros_driver_node "${cpp_typesupport_target}")
 else()
