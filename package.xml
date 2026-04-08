@@ -11,10 +11,10 @@
   <buildtool_depend condition="$ROS_VERSION == 2">rosidl_default_generators</buildtool_depend>
 
   <!-- Common Dependencies -->
-  <build_depend>yaml-cpp</build_depend>
   <depend>boost</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>yaml-cpp</depend>
   
   <!-- ROS1 -->
   <depend condition="$ROS_VERSION == 1">roscpp</depend>
