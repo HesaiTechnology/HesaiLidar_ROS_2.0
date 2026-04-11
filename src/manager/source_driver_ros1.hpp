@@ -298,13 +298,13 @@ inline sensor_msgs::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<L
     ++iter_ring_;
     ++iter_timestamp_;   
   }
-  printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
+  // ////printf("%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp) ;
   // ros_msg.header.seq = s;
   int64_t sec = static_cast<int64_t>(frame_start_timestamp);  
   if (sec <= std::numeric_limits<int32_t>::max()) {
     ros_msg.header.stamp = ros::Time().fromSec(frame_start_timestamp);
   } else {
-    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame_start_timestamp);
+    ////printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame_start_timestamp);
   }
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;
@@ -323,7 +323,7 @@ inline hesai_ros_driver::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_m
   if (sec <= std::numeric_limits<int32_t>::max()) {
     rs_msg.header.stamp = ros::Time().fromSec(timestamp);
   } else {
-    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", timestamp);
+    ////printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", timestamp);
   }
   rs_msg.header.frame_id = frame_id_;
   return rs_msg;
@@ -366,7 +366,7 @@ inline sensor_msgs::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_config_)
   if (sec <= std::numeric_limits<int32_t>::max()) {
     ros_msg.header.stamp = ros::Time().fromSec(imu_config_.timestamp);
   } else {
-    printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
+    ////printf("ros1 does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
   }
   ros_msg.header.frame_id = frame_id_;
   ros_msg.linear_acceleration.x = From_g_To_ms2(imu_config_.imu_accel_x);

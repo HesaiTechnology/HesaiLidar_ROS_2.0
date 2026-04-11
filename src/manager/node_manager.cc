@@ -85,9 +85,9 @@ bool NodeManager::IsPlayEnded() {
     }
     if (all_pcap_end) {
       std::this_thread::sleep_for(std::chrono::seconds(3));
-      printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
+      ////printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
       if (system("rosnode kill rviz") == -1) {
-        printf("Command Execution Error: rosnode kill rviz\n");
+        ////printf("Command Execution Error: rosnode kill rviz\n");
         all_pcap_end = false;;
       }
     } 
@@ -100,10 +100,10 @@ bool NodeManager::IsPlayEnded() {
     }
     if (all_pcap_end) {
       std::this_thread::sleep_for(std::chrono::seconds(3));
-      printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
+      ////printf("-----------------%d pcap(s) end, we will close the node(s)!!!-----------------\n", num);
       std::cout.flush();
       if (system("pkill -f rviz2") == -1) {
-        printf("Command Execution Error: pkill -f rviz2\n");
+        ////printf("Command Execution Error: pkill -f rviz2\n");
         all_pcap_end = false;
       }
       std::this_thread::sleep_for(std::chrono::microseconds(1));
