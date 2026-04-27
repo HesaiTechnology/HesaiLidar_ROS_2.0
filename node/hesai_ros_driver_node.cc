@@ -95,7 +95,12 @@ int main(int argc, char** argv)
 #endif
 
   YAML::Node config;
-  config = YAML::LoadFile(config_path);
+  try {
+    config = YAML::LoadFile(config_path);
+  } catch (const std::exception& e) {
+    printf("Load config error: %s\n", e.what());
+    return -1;
+  }
   std::shared_ptr<NodeManager> demo_ptr = std::make_shared<NodeManager>();
   demo_ptr->Init(config);
   demo_ptr->Start();

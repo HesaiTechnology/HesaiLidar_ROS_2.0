@@ -4,11 +4,13 @@ Developed based on [HesaiLidar_SDK_2.0](https://github.com/HesaiTechnology/Hesai
 
 ## Support Lidar type
 
-| Pandar       | OT    | QT       | XT          | AT       | FT    | JT    |
-|:-------------|:------|:---------|:------------|:---------|:------|:------|
-| Pandar40P    | OT128 | PandarQT | PandarXT    | AT128E2X | FT120 | JT16  |
-| Pandar64     | -     | QT128C2X | PandarXT-16 | AT128P   | -     | JT128 |
-| Pandar128E3X | -     | -        | XT32M2X     | ATX      | -     | -     |
+| Pandar       | OT           | QT           | XT           | AT           | FT           | JT           |
+|:------------|:------------|:------------|:------------|:------------|:------------|:------------|
+| Pandar40P    | OT128        | PandarQT     | PandarXT     | AT128E2X     | FT120        | JT128        |
+| Pandar40M    | OT128_40     | QT128C2X     | PandarXT-16  | AT128P       | FTX          | JT64P        |
+| Pandar64     | -            | -            | XT32M2X      | ATX          | -            | JT16         |
+| Pandar128E3X | -            | -            | -            | -            | -            | -            |
+| Pandar90E3X  | -            | -            | -            | -            | -            | -            |
 
 ### Installation dependencies
 
@@ -41,7 +43,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 
 - ros1
 
-    Create an `src` folder, copy the source code of the ros driver into it, and then run the following command:
+    Create an `src` folder, copy the source code of the ros driver into it, and then run the following command in the directory where `src` is located:
         
         catkin_make
         source devel/setup.bash
@@ -49,7 +51,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 
 - ros2
 
-    Create an `src` folder, copy the source code of the ros driver into it, and then run the following command:
+    Create an `src` folder, copy the source code of the ros driver into it, and then run the following command in the directory where `src` is located:
         
         colcon build --symlink-install
         . install/local_setup.bash
@@ -61,6 +63,56 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
     For other ROS2 version
 
         ros2 launch hesai_ros_driver start.py
+
+    If you want to use the files in the `install` folder independently for easy project mobility, replace the original build command with the following command:
+
+        colcon build
+
+### Passing CMake arguments to SDK
+
+You can pass CMake arguments to the SDK during compilation to enable/disable specific features or define custom macros.
+
+- ros1 (catkin)
+
+    Use `catkin_make` with `-D` flags to pass CMake arguments:
+
+        catkin_make -DWITH_PTCS_USE=OFF
+        catkin_make -DCMAKE_CXX_FLAGS="-DMY_CUSTOM_MACRO=1"
+
+- ros2 (colcon)
+
+    Use `--cmake-args` to pass CMake arguments:
+
+        colcon build --symlink-install --cmake-args -DWITH_PTCS_USE=OFF
+        colcon build --symlink-install --cmake-args -DCMAKE_CXX_FLAGS="-DMY_CUSTOM_MACRO=1"
+
+    To pass multiple arguments:
+
+        colcon build --symlink-install --cmake-args -DWITH_PTCS_USE=OFF -DFIND_CUDA=ON
+
+**Available CMake options:**
+
+| Option | Type | Default | Description |
+|:-------|:-----|:--------|:------------|
+| `WITH_PTCS_USE` | BOOL | ON | Enable PTC SSL support |
+| `FIND_CUDA` | BOOL | OFF | Enable CUDA GPU acceleration |
+| `CMAKE_CUDA_ARCHITECTURES` | STRING | 61 | CUDA compute capability (e.g., 50/60/61/70/75/80/86/89/90) |
+
+For more details about SDK compile macros, please refer to [compile_macro_control_description](src/driver/HesaiLidar_SDK_2.0/docs/compile_macro_control_description.md).
+
+### CMake library targets (`hesai_ros_driver` dependencies)
+
+These are the SDK CMake targets linked by `hesai_ros_driver`. **Installable** means the target participates in `cmake --install` / the `install` space as a built artifact (ROS 2 / `colcon`); **INTERFACE** targets are header/usage-only aggregates and are not installed as separate libraries. On ROS 1 / catkin, only `hesai_ros_driver_node` is installed: catkin does not allow installing targets defined in `add_subdirectory`, and the static libraries are already linked into the node.
+
+| CMake target | Type | Installable |
+|:-------------|:-----|:------------|
+| `log_lib` | STATIC or SHARED | Yes |
+| `lidar_lib` | INTERFACE | No |
+| `ptcClient_lib` | STATIC | Yes |
+| `source_lib` | STATIC | Yes |
+| `platutils_lib` | STATIC | Yes |
+| `serialClient_lib` | STATIC | Yes |
+| `udpParser_lib` | INTERFACE | No |
 
 ### Introduction to the configuration file `config.yaml` parameters
 
@@ -365,16 +417,3 @@ lidar:
       send_point_cloud_ros: true                      # true: Send point cloud through ROS    
       send_imu_ros: true                              # true: Send imu through ROS    
 ```
-# Note
-
-## Trigger GitHub Actions workflow
-
-The GitHub Actions workflow in `.github/workflows/build.yml` is triggered in the following cases:
-
-- Open or update a pull request that targets `master`
-- Push commits directly to `master`
-- Run it manually from the GitHub Actions page via `workflow_dispatch`
-
-For pull request testing, create a branch from `github/master`, push your changes to that branch, and then open a pull request to `master`. GitHub will start the workflow automatically after the pull request is created or updated.
-
-If you need to add or modify files under `.github/workflows/`, make sure the GitHub credential used for `git push` has the `workflow` permission; otherwise GitHub will reject the push. 
