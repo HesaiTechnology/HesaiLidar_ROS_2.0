@@ -1,2 +1,3 @@
 uint8 ptp_lock_offset
-uint8[16] ptp_status
+uint32 ptp_status_size
+uint8[] ptp_status
