@@ -23,6 +23,7 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
 - Ubuntu 20.04 - ROS2 Foxy desktop
 - Ubuntu 22.04 - ROS2 Humble desktop
 - Ubuntu 24.04 - ROS2 Jazzy desktop
+- Ubuntu 26.04 - ROS2 Lyrical desktop
 
 ### Install Boost
 
