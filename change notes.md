@@ -1,5 +1,29 @@
 # HesaiLidar_ROS_2.0
 
+## V2.0.12
+
+### Monday April 27th, 2026 20:47:57
+
+## Added
+1. Added `ros_send_every_packet_topic` feature to publish every lidar packet one by one through ROS.
+2. Added `ptp_status_size` field to the `Ptp` message and changed `ptp_status` from a fixed-length array to a variable-length array.
+3. Added support for passing SDK CMake arguments during ROS1 and ROS2 build.
+4. Added installation of the `config` directory for ROS2 install output.
+5. Added configuration file load exception handling when starting the node.
+
+## Modified
+1. Updated GitHub Actions workflow to install required system dependencies and upload build logs correctly.
+2. Updated the build workflow to be compatible with ROS Rolling compilation.
+3. Updated `HesaiLidar_SDK_2.0` submodule to a newer commit.
+4. Updated `CMakeLists.txt` to improve compatibility across ROS2 distributions and different `ament` / `rosidl` interfaces.
+5. Updated correction and PTP topic publishing behavior to support late subscribers more reliably.
+6. Updated IMU publisher queue size for PCAP and ROS packet input scenarios.
+7. Updated IMU output publishing logic to use the raw driver values directly.
+8. Updated ROS launch and configuration examples, including `config_path` and packet topic related settings.
+9. Updated README with supported lidar models, build instructions, and SDK CMake option descriptions.
+10. Simplified the default RViz configuration.
+11. Removed `ros_send_firetime_topic` related configuration and publishing logic.
+
 ## V2.0.11
 
 ### Wednesday November 5th, 2025 16:30:00

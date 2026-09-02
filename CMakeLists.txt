@@ -7,7 +7,7 @@ project(hesai_ros_driver)
 #=======================================
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_TINY  11)
+set(VERSION_TINY  12)
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
@@ -59,7 +59,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   add_definitions(-O3)
 endif()
 
-if(($ENV{ROS_DISTRO} STREQUAL "kilted"))
+if(($ENV{ROS_DISTRO} STREQUAL "rolling"))
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+elseif(($ENV{ROS_DISTRO} STREQUAL "kilted"))
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 elseif(($ENV{ROS_DISTRO} STREQUAL "jazzy"))
@@ -71,7 +74,7 @@ else()
 add_definitions(-std=c++14)
 endif()
 
-add_compile_options(-Wall)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wall> $<$<COMPILE_LANGUAGE:C>:-Wall>)
 
 #========================
 # Dependencies Setup
@@ -127,11 +130,12 @@ if($ENV{ROS_VERSION} MATCHES "2")
 
     add_definitions(-DROS2_FOUND)
     include_directories(${rclcpp_INCLUDE_DIRS})
-    set(CMAKE_CXX_STANDARD 14)
 
     find_package(ament_cmake REQUIRED)
     find_package(sensor_msgs REQUIRED)
     find_package(std_msgs REQUIRED)  
+    find_package(rcutils REQUIRED)
+    find_package(rcl_interfaces REQUIRED)
     find_package(rclcpp_action REQUIRED)
     find_package(rosidl_typesupport_c REQUIRED) 
     find_package(rosidl_default_generators REQUIRED)
@@ -187,6 +191,14 @@ set(LIB_TARGETS
     udpParser_lib
     )
 
+set(INSTALLABLE_LIB_TARGETS
+    log_lib
+    ptcClient_lib
+    source_lib
+    platutils_lib
+    serialClient_lib
+    )
+
 if(${CUDA_FOUND})
   add_executable(hesai_ros_driver_node
     node/hesai_ros_driver_node.cu
@@ -194,6 +206,10 @@ if(${CUDA_FOUND})
     )
   set(LIB_TARGETS
     ${LIB_TARGETS}
+    udpParserGpu_lib
+    )
+  set(INSTALLABLE_LIB_TARGETS
+    ${INSTALLABLE_LIB_TARGETS}
     udpParserGpu_lib
     )
 else()
@@ -219,7 +235,10 @@ target_include_directories(hesai_ros_driver_node PRIVATE
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
   target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
-  install(TARGETS hesai_ros_driver_node ${LIB_TARGETS}
+  # Catkin's install() only allows targets declared in this CMakeLists.txt.
+  # SDK targets (log_lib, etc.) are added in add_subdirectory and must not be
+  # listed here; they are already linked into hesai_ros_driver_node.
+  install(TARGETS hesai_ros_driver_node
           RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
           LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
           ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
@@ -235,37 +254,62 @@ endif($ENV{ROS_VERSION} MATCHES "1")
 
 if($ENV{ROS_VERSION} MATCHES "2")
   find_package(ament_index_cpp REQUIRED)
-  ament_target_dependencies(hesai_ros_driver_node 
-  "ament_index_cpp"
-  "rcl_interfaces"
-  "rclcpp" 
-  "rcutils"
-  "std_msgs" 
-  "sensor_msgs" 
-  # "tf2_geometry_msgs"
-  )
+  if(COMMAND ament_target_dependencies)
+    ament_target_dependencies(hesai_ros_driver_node 
+    "ament_index_cpp"
+    "rcl_interfaces"
+    "rclcpp" 
+    "rcutils"
+    "std_msgs" 
+    "sensor_msgs"
+    "rclcpp_action"
+    # "tf2_geometry_msgs"
+    )
+  else()
+    set(ROS2_TARGET_DEPENDENCIES
+      ament_index_cpp
+      rcl_interfaces
+      rclcpp
+      rcutils
+      std_msgs
+      sensor_msgs
+      rclcpp_action
+    )
+    foreach(dependency IN LISTS ROS2_TARGET_DEPENDENCIES)
+      if(DEFINED ${dependency}_TARGETS AND NOT "${${dependency}_TARGETS}" STREQUAL "")
+        target_link_libraries(hesai_ros_driver_node ${${dependency}_TARGETS})
+      elseif(TARGET ${dependency}::${dependency})
+        target_link_libraries(hesai_ros_driver_node ${dependency}::${dependency})
+      elseif(DEFINED ${dependency}_LIBRARIES AND NOT "${${dependency}_LIBRARIES}" STREQUAL "")
+        target_link_libraries(hesai_ros_driver_node ${${dependency}_LIBRARIES})
+      endif()
 
-if(($ENV{ROS_DISTRO} STREQUAL "kilted") OR ($ENV{ROS_DISTRO} STREQUAL "jazzy") OR ($ENV{ROS_DISTRO} STREQUAL "humble"))
-  rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
-  target_link_libraries(hesai_ros_driver_node "${cpp_typesupport_target}")
-else()
-  rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
-endif()
+      if(DEFINED ${dependency}_INCLUDE_DIRS AND NOT "${${dependency}_INCLUDE_DIRS}" STREQUAL "")
+        target_include_directories(hesai_ros_driver_node PUBLIC ${${dependency}_INCLUDE_DIRS})
+      endif()
+    endforeach()
+  endif()
+
+  if(COMMAND rosidl_get_typesupport_target)
+    rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
+    target_link_libraries(hesai_ros_driver_node "${cpp_typesupport_target}")
+  else()
+    rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  endif()
 
   install(TARGETS
           hesai_ros_driver_node
           DESTINATION lib/${PROJECT_NAME})
   install(TARGETS
-          ${LIB_TARGETS}
+          ${INSTALLABLE_LIB_TARGETS}
           DESTINATION lib)
 
   install(DIRECTORY
           launch
           rviz
+          config
           DESTINATION share/${PROJECT_NAME})
 
   ament_package()
 
 endif($ENV{ROS_VERSION} MATCHES "2")
-
-

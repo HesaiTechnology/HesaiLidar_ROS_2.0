@@ -1,9 +1,7 @@
 Copyright (C) 2023 Hesai Technology Co., Ltd.
-Copyright (C) 2023 Hesai Technology, zhangyu
-Copyright (C) 2023 Hesai Technology, huangzhongbo
 All rights reserved.
 
-All code in this repository is released under the terms of the following Modified BSD License. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Source code in this repository contributed by Hesai Technology is released under the terms of the following Modified BSD License. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
 * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 
@@ -12,3 +10,39 @@ All code in this repository is released under the terms of the following Modifie
 * Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+Optional / link-time dependencies (not shipped as source here)
+================================================================================
+
+Depending on build options and your environment, this project may link against
+or require separately installed third-party libraries. You must comply with the
+license terms of any such library that you distribute or use with your product.
+
+  Hesai ROS driver (hesai_ros_driver) — typical build-time / link-time deps:
+
+  * yaml-cpp - MIT; used for YAML configuration (https://github.com/jbeder/yaml-cpp)
+  * Boost C++ Libraries - Boost Software License 1.0; at least Boost.Thread
+    (https://www.boost.org/LICENSE_1_0.txt)
+  * CMake Threads / POSIX Threads - see your platform libc/pthread licensing
+
+  Bundled Hesai SDK (submodule) and optional features:
+
+  * OpenSSL - https://www.openssl.org/source/license.html (when TLS/mTLS PTC
+    is enabled; default build may link this via WITH_PTCS_USE)
+  * CUDA toolkit - see NVIDIA documentation when GPU UDP parser is enabled
+  * PCL, LASlib - see respective project licenses (optional targets under SDK
+    tool/, e.g. visualization / conversion tools)
+
+  PCAP replay in this tree reads .pcap files with in-source parsers and does
+  not link libpcap; only add libpcap (or similar) if you combine this software
+  with external capture stacks that require it.
+
+  When built as a ROS 1 or ROS 2 package, the ROS middleware, build tools
+  (catkin / ament), and message/runtime packages (e.g. roscpp, rclcpp,
+  sensor_msgs) are separate works; follow your ROS distribution and each
+  package's license terms.
+
+Nothing in this section changes the Modified BSD terms above for Hesai's own
+code in this repository.
+
