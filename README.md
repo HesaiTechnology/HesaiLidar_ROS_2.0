@@ -169,6 +169,7 @@ lidar:
       
       # public module
       use_timestamp_type: 0                 # 0 use point cloud timestamp; 1 use receive timestamp
+      imu_publish_period_sec: 0            # Seconds; 0 = every IMU-bearing decode when sample_timestamp_us is 0
       frame_start_azimuth: 0                # Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it      
       # parser thread num
       thread_num: 4
@@ -293,6 +294,7 @@ lidar:
       
       # public module
       use_timestamp_type: 0                 # 0 use point cloud timestamp; 1 use receive timestamp
+      imu_publish_period_sec: 0            # Seconds; 0 = every IMU-bearing decode when sample_timestamp_us is 0
       frame_start_azimuth: 0                # Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it      
       # parser thread num
       thread_num: 4
@@ -380,6 +382,7 @@ lidar:
       
       # public module
       use_timestamp_type: 0                 # 0 use point cloud timestamp; 1 use receive timestamp
+      imu_publish_period_sec: 0            # Seconds; 0 = every IMU-bearing decode when sample_timestamp_us is 0
       frame_start_azimuth: 0                # Frame azimuth for Pandar128, range from 1 to 359, set it less than 0 if you do not want to use it      
       # parser thread num
       thread_num: 4

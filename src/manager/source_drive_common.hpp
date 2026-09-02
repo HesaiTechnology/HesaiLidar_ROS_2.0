@@ -60,6 +60,7 @@ public:
         }
         YamlRead<float>(      driver_config, "frame_start_azimuth",       driver_param.decoder_param.frame_start_azimuth, -1);
         YamlRead<uint16_t>(   driver_config, "use_timestamp_type",        driver_param.decoder_param.use_timestamp_type, 0);
+        YamlRead<double>(     driver_config, "imu_publish_period_sec",    driver_param.decoder_param.imu_publish_period_sec, 0.0);
         // decoder related
         YamlRead<int>(        driver_config, "thread_num",                driver_param.decoder_param.thread_num, 1);
         YamlRead<bool>(       driver_config, "transform_flag",            driver_param.decoder_param.transform_param.use_flag, false);
