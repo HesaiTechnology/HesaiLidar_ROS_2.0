@@ -207,6 +207,8 @@ lidar:
       send_imu_ros: true                              # true: Send imu through ROS    
 ```
 
+For ROS 1 point clouds from JT128, the `timestamp` field contains each point's sensor timestamp, including its decoded firing-time offset. Other lidar types retain the existing timestamp behavior.
+
 
 ### Real time playback
 
