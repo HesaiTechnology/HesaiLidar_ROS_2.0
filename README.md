@@ -207,6 +207,8 @@ lidar:
       send_imu_ros: true                              # true: Send imu through ROS    
 ```
 
+For ROS 2 point clouds from JT128, the published `PointCloud2` message includes a `confidence` field (`UINT8`). Other lidar types retain the existing point-cloud fields.
+
 
 ### Real time playback
 
