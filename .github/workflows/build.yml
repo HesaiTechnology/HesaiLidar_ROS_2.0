@@ -23,6 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Rolling packages use ros2-testing, as in the official Rolling images.
+      - name: Configure ROS 2 testing repository for Rolling
+        if: matrix.ros == 'rolling'
+        run: |
+          apt-get update
+          apt-get install -y ros2-testing-apt-source
+
       - name: Install system dependencies
         run: |
           apt-get update
