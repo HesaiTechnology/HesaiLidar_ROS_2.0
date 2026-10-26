@@ -310,6 +310,19 @@ if($ENV{ROS_VERSION} MATCHES "2")
           config
           DESTINATION share/${PROJECT_NAME})
 
+  include(CTest)
+  if(BUILD_TESTING)
+    add_executable(test_jt128_confidence test/jt128_confidence.cpp)
+    # Exercise the real ROS conversion with the node's generated messages,
+    # SDK, and ROS dependencies, without opening a device or starting a node.
+    target_include_directories(test_jt128_confidence PRIVATE
+      $<TARGET_PROPERTY:hesai_ros_driver_node,INCLUDE_DIRECTORIES>)
+    target_link_libraries(test_jt128_confidence PRIVATE
+      $<TARGET_PROPERTY:hesai_ros_driver_node,LINK_LIBRARIES>)
+    add_dependencies(test_jt128_confidence hesai_ros_driver_node)
+    add_test(NAME jt128_confidence COMMAND test_jt128_confidence)
+  endif()
+
   ament_package()
 
 endif($ENV{ROS_VERSION} MATCHES "2")

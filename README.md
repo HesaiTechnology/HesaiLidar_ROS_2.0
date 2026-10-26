@@ -207,7 +207,7 @@ lidar:
       send_imu_ros: true                              # true: Send imu through ROS    
 ```
 
-For ROS 2 point clouds from JT128, the published `PointCloud2` message includes a `confidence` field (`UINT8`). Other lidar types retain the existing point-cloud fields.
+For ROS 2 point clouds from JT128, the published `PointCloud2` message includes a `confidence` field (`UINT8`). This is the raw per-point byte carried under protocol 1.4 header flag bit 5, decoded by the SDK as `weightFactor`: bits 7:6 encode lens contamination and bits 5:0 encode noise. It is not the SDK's separate bit-4 `confidence` member. Other lidar types retain the existing point-cloud fields.
 
 
 ### Real time playback
