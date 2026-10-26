@@ -69,6 +69,7 @@ void Decode(LidarDecodedFrame<Point>& frame, uint8_t flags) {
 class TestDriver : public SourceDriver {
  public:
   TestDriver() : SourceDriver(DATA_FROM_PCAP) {
+    frame_id_ = "test_lidar";
     driver_ptr_ = std::make_shared<HesaiLidarSdk<LidarPointXYZJT128>>();
     driver_ptr_->lidar_ptr_ = std::make_shared<Lidar<LidarPointXYZJT128>>();
     Require(driver_ptr_->lidar_ptr_->SetLidarType("JT128") == 0, "JT128 selection failed");
