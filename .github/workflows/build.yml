@@ -18,7 +18,7 @@ jobs:
         ros: [humble, jazzy, kilted, lyrical, rolling]
     name: ROS 2 ${{ matrix.ros }}
     container:
-      image: polymathrobotics/ros:${{ matrix.ros }}-builder-ubuntu
+      image: ros:${{ matrix.ros }}-ros-base
 
     steps:
       - uses: actions/checkout@v4

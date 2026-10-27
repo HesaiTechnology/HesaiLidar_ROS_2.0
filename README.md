@@ -30,6 +30,19 @@ Install ROS related dependency libraries, please refer to: http://wiki.ros.org
     git clone --recurse-submodules https://github.com/HesaiTechnology/HesaiLidar_ROS_2.0.git
     
 
+### Install dependencies
+
+Boost and yaml-cpp are declared in `package.xml`; the CMake configuration requires the Boost `thread` component and yaml-cpp. After cloning, install all dependencies with `rosdep` from the directory that contains the `src` folder:
+
+    sudo rosdep init     # only once per machine; skip if it reports that it is already initialized
+    rosdep update
+    rosdep install --from-paths src --ignore-src -r -y
+
+On Ubuntu, `rosdep` resolves `boost` to `libboost-all-dev` and `yaml-cpp` to `libyaml-cpp-dev`. If you do not use `rosdep` (for example on an offline machine), install them manually before building:
+
+    sudo apt-get update
+    sudo apt-get install -y libboost-all-dev libyaml-cpp-dev
+
 ### Compile and run
 
 - ros1
