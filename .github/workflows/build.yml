@@ -1,5 +1,3 @@
----
-
 name: Build and test
 
 on:
@@ -15,10 +13,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ros: [humble, jazzy, kilted, lyrical, rolling]
-    name: ROS 2 ${{ matrix.ros }}
+        include:
+          - ros2: humble
+          - ros2: jazzy
+          - ros2: kilted
+          - ros2: lyrical
+          - ros2: rolling
+          - ros2: foxy
+          - ros1: noetic
+    name: ROS ${{ matrix.ros2 || matrix.ros1 }}
     container:
-      image: ros:${{ matrix.ros }}-ros-base
+      image: ros:${{ matrix.ros2 || matrix.ros1 }}-ros-base
 
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +31,10 @@ jobs:
       - id: ros_ci
         uses: ros-tooling/action-ros-ci@v0.4
         with:
-          target-ros2-distro: ${{ matrix.ros }}
+          target-ros2-distro: ${{ matrix.ros2 || '' }}
+          target-ros1-distro: ${{ matrix.ros1 || '' }}
+          # catkin packages do not support colcon's symlink install
+          no-symlink-install: ${{ matrix.ros1 && 'true' || 'false' }}
           coverage-result: false
           colcon-defaults: |
             {
@@ -41,5 +49,30 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: colcon-logs-${{ matrix.ros }}
+          name: colcon-logs-${{ matrix.ros2 || matrix.ros1 }}
           path: ${{ steps.ros_ci.outputs.ros-workspace-directory-name }}/log
+
+  # ros:melodic-ros-base is Ubuntu 18.04 (glibc 2.27). GitHub injects a Node 24
+  # runtime into container jobs, which requires glibc >= 2.28, so no JS action
+  # (checkout, action-ros-ci) can start inside that image. Drive docker from the
+  # host instead and build with catkin_make, as documented for ROS 1.
+  build_melodic:
+    name: ROS melodic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: catkin_make in ros:melodic-ros-base
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/ws/src/hesai_ros_driver" \
+            -w /ws \
+            ros:melodic-ros-base bash -lc '
+              set -e
+              source /opt/ros/melodic/setup.bash
+              apt-get update -qq
+              rosdep install --from-paths src --ignore-src -y --rosdistro melodic
+              catkin_make -DCMAKE_CXX_FLAGS=-Werror
+            '
