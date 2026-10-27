@@ -28,6 +28,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ROS 1 images ship without vcstool, which action-ros-ci needs first
+      - name: Install vcstool
+        if: matrix.ros1
+        run: |
+          apt-get update
+          apt-get install -y python3-vcstool
+
       - id: ros_ci
         uses: ros-tooling/action-ros-ci@v0.4
         with:
