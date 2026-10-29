@@ -1,5 +1,3 @@
----
-
 name: Build and test
 
 on:
@@ -10,32 +8,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_and_test:
+  build_ros2:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ros: [humble, jazzy, kilted, rolling]
+        ros: [humble, jazzy, kilted, lyrical, rolling, foxy]
     name: ROS 2 ${{ matrix.ros }}
     container:
-      image: polymathrobotics/ros:${{ matrix.ros }}-builder-ubuntu
+      image: ros:${{ matrix.ros }}-ros-base
 
     steps:
       - uses: actions/checkout@v4
-
-      # Rolling packages use ros2-testing, as in the official Rolling images.
-      - name: Configure ROS 2 testing repository for Rolling
-        if: matrix.ros == 'rolling'
-        run: |
-          apt-get update
-          apt-get install -y ros2-testing-apt-source
-
-      - name: Install system dependencies
-        run: |
-          apt-get update
-          apt-get install -y \
-            libboost-all-dev \
-            libyaml-cpp-dev
 
       - id: ros_ci
         uses: ros-tooling/action-ros-ci@v0.4
@@ -57,3 +41,32 @@ jobs:
         with:
           name: colcon-logs-${{ matrix.ros }}
           path: ${{ steps.ros_ci.outputs.ros-workspace-directory-name }}/log
+
+  # ROS 1 ros-base images are minimal: they ship neither git, vcstool nor
+  # colcon, which action-ros-ci assumes. The melodic image is also Ubuntu
+  # 18.04 (glibc 2.27), where GitHub's Node 24 runtime cannot start at all.
+  # Build both from the host with docker + catkin_make, as documented.
+  build_ros1:
+    name: ROS 1 ${{ matrix.ros }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ros: [noetic, melodic]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: catkin_make in ros:${{ matrix.ros }}-ros-base
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/ws/src/hesai_ros_driver" \
+            -w /ws \
+            ros:${{ matrix.ros }}-ros-base bash -lc '
+              set -e
+              source /opt/ros/${{ matrix.ros }}/setup.bash
+              apt-get update -qq
+              rosdep install --from-paths src --ignore-src -y --rosdistro ${{ matrix.ros }}
+              catkin_make -DCMAKE_CXX_FLAGS=-Werror
+            '
