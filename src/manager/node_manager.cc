@@ -29,14 +29,22 @@
  */
 
 #include "manager/node_manager.h"
+#ifdef ROS2_FOUND
+void NodeManager::Init(const YAML::Node& config, rclcpp::Node* node)
+#else
 void NodeManager::Init(const YAML::Node& config)
+#endif
 {
   YAML::Node lidar_config = YamlSubNodeAbort(config, "lidar");
   for (uint8_t i = 0; i < lidar_config.size(); ++i)
   {
     std::shared_ptr<SourceDriver> source;
     source = std::make_shared<SourceDriver>(SourceType::DATA_FROM_LIDAR);
+#ifdef ROS2_FOUND
+    source->Init(lidar_config[i], node);
+#else
     source->Init(lidar_config[i]);
+#endif
     sources_driver_.emplace_back(source);
   }
 }

@@ -30,40 +30,68 @@
 
 #include "manager/node_manager.h"
 #include <signal.h>
+#include <chrono>
 #include <iostream>
+#include <thread>
 #include "Version.h"
 #ifdef ROS_FOUND
 #include <ros/ros.h>
 #include <ros/package.h>
 #elif ROS2_FOUND
 #include <rclcpp/rclcpp.hpp>
+#include "manager/hesai_ros_driver_component.h"
 #endif
 
 #ifdef ROS2_FOUND
-std::mutex g_mtx;
-std::condition_variable g_cv;
-#endif
+// ROS 2: standalone executable that hosts the composable node
+// (hesai_ros_driver::HesaiRosDriverNode) in its own process. The same node can be loaded
+// into a component container instead; see launch/start_composable.py.
+int main(int argc, char** argv)
+{
+  rclcpp::init(argc, argv);  // installs the SIGINT handler; rclcpp::ok() turns false on Ctrl+C
+
+  std::shared_ptr<hesai_ros_driver::HesaiRosDriverNode> node;
+  try {
+    node = std::make_shared<hesai_ros_driver::HesaiRosDriverNode>(rclcpp::NodeOptions());
+  } catch (const std::exception& e) {
+    std::cerr << "Failed to start hesai_ros_driver_node: " << e.what() << std::endl;
+    rclcpp::shutdown();
+    return -1;
+  }
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node);
+  std::thread spin_thread([&executor]() { executor.spin(); });
+
+  // you can chose [!node->IsPlayEnded()] or [1]
+  // If you chose !node->IsPlayEnded(), ROS node will end with the end of the PCAP.
+  // If you select 1, the ROS node does not end with the end of the PCAP.
+  while (rclcpp::ok() && !node->IsPlayEnded())
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  executor.cancel();
+  if (spin_thread.joinable()) spin_thread.join();
+  executor.remove_node(node);
+  node.reset();  // stops the driver
+  rclcpp::shutdown();
+  return 0;
+}
+#else
 
 bool sig_recv = false;
 static void sigHandler(int sig)
 {
   sig_recv = true;
-#ifdef ROS_FOUND
   ros::shutdown();
-#elif ROS2_FOUND
-  g_cv.notify_all();
-#endif
 }
 
 int main(int argc, char** argv)
 {
   std::cout << "-------- Hesai Lidar ROS V" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_TINY << " --------" << std::endl;
   signal(SIGINT, sigHandler);  ///< bind ctrl+c signal with the sigHandler function
-#ifdef ROS_FOUND
   ros::init(argc, argv, "hesai_ros_driver_node", ros::init_options::NoSigintHandler);
-#elif ROS2_FOUND
-  rclcpp::init(argc, argv);
-#endif
 
   std::string config_path;
 
@@ -75,7 +103,6 @@ int main(int argc, char** argv)
 
    config_path += "/config/config.yaml";
 
-#ifdef ROS_FOUND
   ros::NodeHandle priv_hh("~");
   std::string path;
   priv_hh.param("config_path", path, std::string(""));
@@ -83,16 +110,6 @@ int main(int argc, char** argv)
   {
     config_path = path;
   }
-#elif ROS2_FOUND
-  // workaround to get config_path from ros parameter
-  auto node = rclcpp::Node::make_shared("hesai_ros_driver_node");
-  std::string path = node->declare_parameter<std::string>("config_path", "");
-  node.reset();
-  if (!path.empty())
-  {
-    config_path = path;
-  }
-#endif
 
   YAML::Node config;
   try {
@@ -114,3 +131,4 @@ int main(int argc, char** argv)
   demo_ptr->Stop();
   return 0;
 }
+#endif  // ROS2_FOUND

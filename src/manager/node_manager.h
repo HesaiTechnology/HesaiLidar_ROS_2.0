@@ -42,7 +42,12 @@ class NodeManager
 public:
 
   // Initialize ROS nodes based on configuration files
+#ifdef ROS2_FOUND
+  // All lidars share the given node (the composable node); it must outlive the manager.
+  void Init(const YAML::Node& config, rclcpp::Node* node);
+#else
   void Init(const YAML::Node& config);
+#endif
   // Start working
   void Start();
   // Stop working

@@ -45,23 +45,26 @@
 #include <chrono>
 #include <string>
 #include <functional>
-#include <boost/thread.hpp>
+#include <stdexcept>
+#include <thread>
 #include "source_drive_common.hpp"
 
 class SourceDriver
 {
 public:
   typedef std::shared_ptr<SourceDriver> Ptr;
-  // Initialize some necessary configuration parameters, create ROS nodes, and register callback functions
-  virtual void Init(const YAML::Node& config);
+  // Initialize some necessary configuration parameters, create publishers/subscriptions
+  // on the given node, and register callback functions.
+  // The node is owned by the caller (the composable node) and must outlive this driver.
+  // Spinning the node is the caller's (executor's / component container's) responsibility.
+  virtual void Init(const YAML::Node& config, rclcpp::Node* node);
   // Start working
   virtual void Start();
   // Stop working
   virtual void Stop();
   virtual ~SourceDriver();
   SourceDriver(SourceType src_type) {};
-  void SpinRos2(){rclcpp::spin(this->node_ptr_);}
-  std::shared_ptr<rclcpp::Node> node_ptr_;
+  rclcpp::Node* node_ptr_ = nullptr;
   std::shared_ptr<HesaiLidarSdk<LidarPointXYZIRT>> driver_ptr_;
 protected:
   // Save Correction file subscribed by "ros_recv_correction_topic"
@@ -115,18 +118,18 @@ protected:
   rclcpp::Publisher<hesai_ros_driver::msg::Ptp>::SharedPtr ptp_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
   rclcpp::Publisher<hesai_ros_driver::msg::UdpPacket>::SharedPtr every_pkt_pub_;
-
-  //spin thread while Receive data from ROS topic
-  boost::thread* subscription_spin_thread_;
 };
-inline void SourceDriver::Init(const YAML::Node& config)
+inline void SourceDriver::Init(const YAML::Node& config, rclcpp::Node* node)
 {
+  if (node == nullptr) {
+    throw std::invalid_argument("SourceDriver::Init: node must not be null");
+  }
   DriverParam driver_param;
   DriveYamlParam yaml_param;
   yaml_param.GetDriveYamlParam(config, driver_param);
   frame_id_ = driver_param.input_param.frame_id;
 
-  node_ptr_.reset(new rclcpp::Node("hesai_ros_driver_node"));
+  node_ptr_ = node;
   if (driver_param.input_param.send_point_cloud_ros) {
     pub_ = node_ptr_->create_publisher<sensor_msgs::msg::PointCloud2>(driver_param.input_param.ros_send_point_topic, 10);
   }
@@ -169,7 +172,8 @@ inline void SourceDriver::Init(const YAML::Node& config)
                               std::bind(&SourceDriver::ReceiveCorrection, this, std::placeholders::_1));
     }
     driver_param.decoder_param.enable_udp_thread = false;
-    subscription_spin_thread_ = new boost::thread(boost::bind(&SourceDriver::SpinRos2,this));
+    // No private spin thread: subscriptions are serviced by the executor that spins the node
+    // (component container or the standalone executable).
   }
   driver_ptr_.reset(new HesaiLidarSdk<LidarPointXYZIRT>());
   driver_param.decoder_param.enable_parser_thread = true;
@@ -200,14 +204,16 @@ inline void SourceDriver::Init(const YAML::Node& config)
   } 
   if (!driver_ptr_->Init(driver_param))
   {
-    std::cout << "Driver Initialize Error...." << std::endl;
-    exit(-1);
+    // Throw instead of exit(): inside a component container exit() would kill every
+    // other component in the process. The container reports the load failure instead.
+    RCLCPP_ERROR(node_ptr_->get_logger(), "Driver Initialize Error....");
+    throw std::runtime_error("Hesai driver initialization failed");
   }
 }
 
 inline void SourceDriver::Start()
 {
-  driver_ptr_->Start();
+  if (driver_ptr_) driver_ptr_->Start();
 }
 
 inline SourceDriver::~SourceDriver()
@@ -217,17 +223,19 @@ inline SourceDriver::~SourceDriver()
 
 inline void SourceDriver::Stop()
 {
-  driver_ptr_->Stop();
+  if (driver_ptr_) driver_ptr_->Stop();
 }
 
+// Large messages are published as unique_ptr so intra-process communication
+// (use_intra_process_comms in a component container) can hand them over without copying.
 inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 {
-  pkt_pub_->publish(ToRosMsg(msg, timestamp));
+  pkt_pub_->publish(std::make_unique<hesai_ros_driver::msg::UdpFrame>(ToRosMsg(msg, timestamp)));
 }
 
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
 {
-  pub_->publish(ToRosMsg(msg, frame_id_));
+  pub_->publish(std::make_unique<sensor_msgs::msg::PointCloud2>(ToRosMsg(msg, frame_id_)));
 }
 
 inline void SourceDriver::SendCorrection(const u8Array_t& msg)
@@ -247,12 +255,12 @@ inline void SourceDriver::SendPTP(const uint8_t& ptp_lock_offset, const u8Array_
 
 inline void SourceDriver::SendImuConfig(const LidarImuData& msg)
 {
-  imu_pub_->publish(ToRosMsg(msg));
+  imu_pub_->publish(std::make_unique<sensor_msgs::msg::Imu>(ToRosMsg(msg)));
 }
 
 inline void SourceDriver::SendPacketOneByOne(const UdpPacket& msg, double timestamp)
 {
-  every_pkt_pub_->publish(ToRosMsg(msg, timestamp));
+  every_pkt_pub_->publish(std::make_unique<hesai_ros_driver::msg::UdpPacket>(ToRosMsg(msg, timestamp)));
 }
 inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFrame<LidarPointXYZIRT>& frame, const std::string& frame_id)
 {

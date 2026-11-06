@@ -68,6 +68,14 @@ On Ubuntu, `rosdep` resolves `boost` to `libboost-all-dev` and `yaml-cpp` to `li
 
         ros2 launch hesai_ros_driver start.py
 
+    As a composable node (plugin `hesai_ros_driver::HesaiRosDriverNode`) in a component container
+
+        ros2 launch hesai_ros_driver start_composable.py config_path:=/path/to/config.yaml use_intra_process:=true
+
+    To load it into an existing container, add `use_existing_container:=true container_name:=<container>`, or run
+    `ros2 component load <container> hesai_ros_driver hesai_ros_driver::HesaiRosDriverNode -p config_path:=/path/to/config.yaml`.
+    All lidars in `config.yaml` share this one node. Note: inside a container the node does not exit when PCAP playback ends.
+
     If you want to use the files in the `install` folder independently for easy project mobility, replace the original build command with the following command:
 
         colcon build
