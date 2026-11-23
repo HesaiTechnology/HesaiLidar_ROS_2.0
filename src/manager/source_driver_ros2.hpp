@@ -34,6 +34,7 @@
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sstream>
+#include "timestamp_conversion.hpp"
 #include <hesai_ros_driver/msg/udp_frame.hpp>
 #include <hesai_ros_driver/msg/udp_packet.hpp>
 #include <hesai_ros_driver/msg/ptp.hpp>
@@ -308,10 +309,8 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
   // RCLCPP_DEBUG(node_ptr_->get_logger(), "HesaiLidar Runing Status [standby mode:%u]  |  [speed:%u]\n", frame.work_mode, frame.spin_speed);
   RCLCPP_DEBUG(node_ptr_->get_logger(), "%s frame:%d points:%u packet:%d start time:%lf end time:%lf\n", prefix, frame_index, points_number, packet_number, frame_start_timestamp, frame_end_timestamp);
   std::cout.flush();
-  auto sec = (uint64_t)floor(frame_start_timestamp);
-  if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp.sec = (uint32_t)floor(frame_start_timestamp);
-    ros_msg.header.stamp.nanosec = (uint32_t)round((frame_start_timestamp - ros_msg.header.stamp.sec) * 1e9);
+  if (!hesai_ros::AssignTimestamp(frame_start_timestamp, ros_msg.header.stamp)) {
+    RCLCPP_ERROR(node_ptr_->get_logger(), "invalid or out-of-range timestamp: %.17g\n", frame_start_timestamp);
   } else {
     RCLCPP_ERROR(node_ptr_->get_logger(), "does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", frame_start_timestamp);
   }
@@ -324,8 +323,9 @@ inline hesai_ros_driver::msg::UdpPacket SourceDriver::ToRosMsg(const UdpPacket& 
   rawpacket.size = ros_msg.packet_len;
   rawpacket.data.resize(ros_msg.packet_len);
   memcpy(&rawpacket.data[0], &ros_msg.buffer[0], ros_msg.packet_len);
-  rawpacket.stamp.sec = (uint32_t)floor(timestamp);
-  rawpacket.stamp.nanosec = (uint32_t)round((timestamp - rawpacket.stamp.sec) * 1e9);
+  if (!hesai_ros::AssignTimestamp(timestamp, rawpacket.stamp)) {
+    RCLCPP_ERROR(node_ptr_->get_logger(), "invalid or out-of-range timestamp: %.17g\n", timestamp);
+  }
   return rawpacket;
 }
 inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& ros_msg, double timestamp) {
@@ -337,10 +337,8 @@ inline hesai_ros_driver::msg::UdpFrame SourceDriver::ToRosMsg(const UdpFrame_t& 
     memcpy(&rawpacket.data[0], &ros_msg[i].buffer[0], ros_msg[i].packet_len);
     rs_msg.packets.push_back(rawpacket);
   }
-  auto sec = (uint64_t)floor(timestamp);
-  if (sec <= std::numeric_limits<int32_t>::max()) {
-    rs_msg.header.stamp.sec = (uint32_t)floor(timestamp);
-    rs_msg.header.stamp.nanosec = (uint32_t)round((timestamp - rs_msg.header.stamp.sec) * 1e9);
+  if (!hesai_ros::AssignTimestamp(timestamp, rs_msg.header.stamp)) {
+    RCLCPP_ERROR(node_ptr_->get_logger(), "invalid or out-of-range timestamp: %.17g\n", timestamp);
   } else {
     RCLCPP_ERROR(node_ptr_->get_logger(), "does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", timestamp);
   }
@@ -383,10 +381,8 @@ inline hesai_ros_driver::msg::Firetime SourceDriver::ToRosMsg(const double *fire
 inline sensor_msgs::msg::Imu SourceDriver::ToRosMsg(const LidarImuData &imu_config_)
 {
   sensor_msgs::msg::Imu ros_msg;
-  auto sec = (uint64_t)floor(imu_config_.timestamp);
-  if (sec <= std::numeric_limits<int32_t>::max()) {
-    ros_msg.header.stamp.sec = (uint32_t)floor(imu_config_.timestamp);
-    ros_msg.header.stamp.nanosec = (uint32_t)round((imu_config_.timestamp - ros_msg.header.stamp.sec) * 1e9);
+  if (!hesai_ros::AssignTimestamp(imu_config_.timestamp, ros_msg.header.stamp)) {
+    RCLCPP_ERROR(node_ptr_->get_logger(), "invalid or out-of-range timestamp: %.17g\n", imu_config_.timestamp);
   } else {
     RCLCPP_ERROR(node_ptr_->get_logger(), "does not support timestamps greater than 19 January 2038 03:14:07 (now %lf)\n", imu_config_.timestamp);
   }
