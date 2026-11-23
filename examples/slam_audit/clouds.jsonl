@@ -1,0 +1,2 @@
+{"stamp": 10.0, "fields": {"ring": "uint16", "timestamp": "float64"}, "points": [[0, 10.0], [15, 10.1]]}
+{"stamp": 10.1, "fields": {"ring": "uint16", "timestamp": "float64"}, "points": [[0, 10.1], [15, 10.2]]}
